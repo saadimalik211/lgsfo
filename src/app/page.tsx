@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Car, Clock, MapPin, Star, Shield, Zap, Users, Calendar } from "lucide-react"
+import Link from "next/link"
 
 export default function Home() {
   return (
@@ -39,10 +40,12 @@ export default function Home() {
             </div>
             
             <div className="flex flex-col sm:flex-row justify-center gap-4 pt-8">
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
-                <Car className="mr-2 h-5 w-5" />
-                Book Your Ride
-              </Button>
+              <Link href="/book">
+                <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
+                  <Car className="mr-2 h-5 w-5" />
+                  Book Your Ride
+                </Button>
+              </Link>
               <Button variant="outline" size="lg" className="border-2 border-slate-300 hover:border-blue-600 text-slate-700 hover:text-blue-600 px-8 py-4 text-lg font-semibold transition-all duration-300">
                 <MapPin className="mr-2 h-5 w-5" />
                 View Routes
@@ -195,10 +198,12 @@ export default function Home() {
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
             Book your ride now and enjoy the comfort, reliability, and luxury you deserve.
           </p>
-          <Button size="lg" className="bg-white text-blue-600 hover:bg-slate-100 px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
-            <Calendar className="mr-2 h-5 w-5" />
-            Book Now
-          </Button>
+          <Link href="/book">
+            <Button size="lg" className="bg-white text-blue-600 hover:bg-slate-100 px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
+              <Calendar className="mr-2 h-5 w-5" />
+              Book Now
+            </Button>
+          </Link>
         </div>
       </section>
 

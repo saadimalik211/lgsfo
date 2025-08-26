@@ -1,51 +1,52 @@
-# Payments Integration (Stripe vs Square)
+# Payments Integration (Stripe)
 
 ## Summary
 
-Both Stripe and Square can power LETSGOSFO payments. We can start with one and swap to the other by keeping a thin payments abstraction in our backend. MVP can ship with Stripe Checkout or Square Web Payments SDK; both support cards and digital wallets.
+LETSGOSFO uses Stripe for secure payment processing. We implement a clean abstraction layer that can be extended for future payment providers if needed.
 
-## Capabilities
+## Stripe Implementation
 
-- Stripe: Payment Intents/Elements or hosted Checkout; Apple Pay/Google Pay; strong webhook ecosystem.
-- Square: Web Payments SDK (Card, Apple Pay, Google Pay); Payments API; webhooks; good SMB pricing.
+- **Checkout**: Hosted checkout pages for quick implementation
+- **Payment Intents**: For custom payment flows and advanced features
+- **Webhooks**: Real-time payment status updates
+- **Apple Pay/Google Pay**: Native mobile payment support
 
-## Architecture Choice
+## Architecture
 
 - Create a Payments Service in the backend exposing:
   - `createPayment({ bookingId, amount, currency, customer })`
   - `refundPayment({ paymentId, amount })`
   - `handleWebhook(headers, body)` → returns normalized event `{ type, bookingId, status, raw }`
-- Implement provider adapters: `StripeAdapter`, `SquareAdapter` behind this interface.
-- Select provider via env var `PAYMENTS_PROVIDER=stripe|square`.
+- Implement `StripeAdapter` behind this interface
+- Webhook endpoint: `/api/payments/webhook`
 
-## Stripe Path (default)
+## Stripe Setup
 
-- Quickest to implement with hosted Checkout.
-- Webhooks: `checkout.session.completed`, `payment_intent.*`.
-- PCI scope: minimal (SAQ A) when using Checkout.
+- **Checkout Sessions**: For simple payment flows
+- **Payment Intents**: For custom payment forms
+- **Webhooks**: `checkout.session.completed`, `payment_intent.*`
+- **PCI Compliance**: Minimal scope (SAQ A) when using Checkout
 
-## Square Path (alternative)
+## Environment Variables
 
-- Use Web Payments SDK for card and wallets; create payment via Payments API.
-- Requires an application and access token; use sandbox for test.
-- Webhooks: `payment.updated` to confirm success/failed/refunded.
-- PCI scope: reduced but similar to Stripe Elements; follow Square guidelines.
+```env
+STRIPE_SECRET_KEY="sk_test_..."
+STRIPE_PUBLISHABLE_KEY="pk_test_..."
+STRIPE_WEBHOOK_SECRET="whsec_..."
+```
 
-## Migration/Swap Strategy
+## Security and Compliance
 
-- Keep payment ids stored as `{ provider, externalId }` in `payments` table.
-- All business logic references our internal payment id.
-- Webhooks routed to `/api/payments/webhook?provider=stripe|square` or single endpoint that detects provider.
-- Feature parity checklist: cards, Apple Pay/Google Pay, refunds, receipts.
+- Never store raw card data; use Stripe SDKs only
+- Verify webhook signatures for all incoming requests
+- Use idempotency keys for create/refund operations
+- Log events with correlation IDs; avoid PII in logs
 
-## Compliance and Security
+## Implementation Notes
 
-- Never store raw card data; use provider SDKs only.
-- Verify webhook signatures; use idempotency keys for create/refund ops.
-- Log events with correlation ids; avoid PII in logs.
-
-## Recommendation
-
-- Start with Stripe Checkout for speed, or Square Web Payments SDK if Square is preferred for business reasons. The abstraction layer ensures we can switch without touching UI/flows.
+- Start with Stripe Checkout for MVP speed
+- Can upgrade to Payment Intents + Elements for custom UI later
+- Webhook handling is critical for payment status updates
+- Test thoroughly with Stripe test mode before going live
 
 

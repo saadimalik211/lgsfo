@@ -9,15 +9,16 @@ export const bookingSchema = z.object({
   luggage: z.number().int().min(0).max(10),
   extras: z.array(z.string()).optional(),
   rideType: z.enum(['STANDARD', 'SUV', 'LUXURY']).default('STANDARD'),
+  priceCents: z.number().int().positive(),
 })
 
 export const pricingRequestSchema = z.object({
   pickup: z.string().min(1),
   dropoff: z.string().min(1),
-  datetime: z.string().datetime(),
+  datetime: z.string().optional(), // Make datetime optional for pricing
   passengers: z.number().int().min(1).max(10),
-  luggage: z.number().int().min(0).max(10),
   extras: z.array(z.string()).optional(),
+  rideType: z.enum(['STANDARD', 'SUV', 'LUXURY']).optional().default('STANDARD'),
 })
 
 // User validation schemas

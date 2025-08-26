@@ -52,7 +52,7 @@ model Booking {
 model Payment {
   id              String        @id @default(cuid())
   bookingId       String
-  stripePaymentId String?       // or squarePaymentId
+  stripePaymentId String?       // Stripe payment intent or checkout session ID
   amountCents     Int
   currency        String        @default("USD")
   status          PaymentStatus @default(REQUIRES_PAYMENT_METHOD)

@@ -25,8 +25,9 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: lgsfo-app
+    env_file:
+      - settings.env
     environment:
-      - DATABASE_URL=postgresql://lgsfo_user:lgsfo_password@postgres:5432/lgsfo
       - NODE_ENV=development
     ports:
       - "3000:3000"
