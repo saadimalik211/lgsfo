@@ -40,3 +40,6 @@ settings.env
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Docker development file (optional to ignore)
+# Dockerfile.dev

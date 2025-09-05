@@ -23,7 +23,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: lgsfo-app
     env_file:
       - settings.env
@@ -38,7 +38,6 @@ services:
       - .:/app
       - /app/node_modules
       - /app/.next
-    command: npm run dev
 
   # Traefik Reverse Proxy (optional for SSL)
   traefik:

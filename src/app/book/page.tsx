@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { MapPin, Calendar, Users, Package, Car, Loader2, CheckCircle, CreditCard, ArrowLeft, Clock, Navigation, Route, User, ArrowRight, ChevronUp, ChevronDown, X } from 'lucide-react'
+import { Calendar, Users, Package, Car, Loader2, CreditCard, ArrowLeft, Clock, Navigation, Route, User, ArrowRight, ChevronUp, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 
 interface BookingData {
@@ -13,6 +13,7 @@ interface BookingData {
   dropoff: string
   datetime: string
   passengers: number
+  luggage: number
   extras: string[]
   rideType: 'STANDARD' | 'SUV' | 'LUXURY'
   customerName: string
@@ -43,6 +44,7 @@ export default function BookingPage() {
     dropoff: '',
     datetime: '',
     passengers: 1,
+    luggage: 0,
     extras: [],
     rideType: 'STANDARD',
     customerName: '',
@@ -199,15 +201,25 @@ export default function BookingPage() {
     setLoading(true)
     try {
       // Create booking
+      const bookingPayload = {
+        pickup: bookingData.pickup,
+        dropoff: bookingData.dropoff,
+        datetime: bookingData.datetime ? new Date(bookingData.datetime).toISOString() : '',
+        passengers: bookingData.passengers,
+        luggage: bookingData.luggage,
+        extras: bookingData.extras,
+        rideType: bookingData.rideType,
+        priceCents: priceEstimate.totalCents
+      }
+      
+      console.log('📤 Sending booking payload:', bookingPayload)
+      
       const bookingResponse = await fetch('/api/bookings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...bookingData,
-          priceCents: priceEstimate.totalCents
-        }),
+        body: JSON.stringify(bookingPayload),
       })
 
       const bookingResult = await bookingResponse.json()
@@ -272,35 +284,9 @@ export default function BookingPage() {
            priceEstimate
   }
 
-  const renderProgressBar = () => (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b">
-      <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex items-center space-x-2">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-            currentStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
-          }`}>
-            {currentStep > 1 ? <CheckCircle className="h-4 w-4" /> : '1'}
-          </div>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-            currentStep >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
-          }`}>
-            {currentStep > 2 ? <CheckCircle className="h-4 w-4" /> : '2'}
-          </div>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-            currentStep >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
-          }`}>
-            3
-          </div>
-        </div>
-        <Link href="/" className="text-gray-600 hover:text-gray-900">
-          <X className="h-5 w-5" />
-        </Link>
-      </div>
-    </div>
-  )
 
   const renderStep1 = () => (
-    <div className="pt-16 pb-6 px-4">
+    <div className="pt-8 pb-6 px-4">
       <div className="max-w-md mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Where to?</h1>
@@ -314,13 +300,12 @@ export default function BookingPage() {
               Pickup Location
             </label>
             <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <Input
                 ref={pickupInputRef}
                 placeholder={googleLoaded ? "Start typing for suggestions..." : "Enter pickup address"}
                 value={bookingData.pickup}
                 onChange={(e) => handleInputChange('pickup', e.target.value)}
-                className="w-full pl-10 pr-4 py-3 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                className="w-full px-4 py-3 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
           </div>
@@ -331,13 +316,12 @@ export default function BookingPage() {
               Dropoff Location
             </label>
             <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <Input
                 ref={dropoffInputRef}
                 placeholder={googleLoaded ? "Start typing for suggestions..." : "Enter dropoff address"}
                 value={bookingData.dropoff}
                 onChange={(e) => handleInputChange('dropoff', e.target.value)}
-                className="w-full pl-10 pr-4 py-3 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                className="w-full px-4 py-3 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
           </div>
@@ -384,7 +368,7 @@ export default function BookingPage() {
   )
 
   const renderStep2 = () => (
-    <div className="pt-16 pb-6 px-4">
+    <div className="pt-8 pb-6 px-4">
       <div className="max-w-md mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Trip Details</h1>
@@ -421,18 +405,17 @@ export default function BookingPage() {
               Date & Time
             </label>
             <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <Input
                 type="datetime-local"
                 value={bookingData.datetime}
                 onChange={(e) => handleInputChange('datetime', e.target.value)}
-                className="w-full pl-10 pr-4 py-3 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                className="w-full px-4 py-3 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
           </div>
 
-          {/* Passengers & Vehicle */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Passengers, Luggage & Vehicle */}
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Passengers
@@ -443,6 +426,21 @@ export default function BookingPage() {
                 </SelectTrigger>
                 <SelectContent>
                   {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
+                    <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Luggage
+              </label>
+              <Select value={bookingData.luggage.toString()} onValueChange={(value) => handleInputChange('luggage', parseInt(value))}>
+                <SelectTrigger className="w-full py-3 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[0, 1, 2, 3, 4, 5, 6, 7, 8].map(num => (
                     <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
                   ))}
                 </SelectContent>
@@ -531,7 +529,7 @@ export default function BookingPage() {
   )
 
   const renderStep3 = () => (
-    <div className="pt-16 pb-6 px-4">
+    <div className="pt-8 pb-6 px-4">
       <div className="max-w-md mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Confirm & Pay</h1>
@@ -653,8 +651,6 @@ export default function BookingPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {renderProgressBar()}
-      
       {currentStep === 1 && renderStep1()}
       {currentStep === 2 && renderStep2()}
       {currentStep === 3 && renderStep3()}
