@@ -32,6 +32,13 @@ export default function Home() {
               <div className="w-2 h-2 bg-indigo-400 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
               <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
             </div>
+
+            {/* Admin Link */}
+            <div className="pt-8">
+              <Link href="/admin/login" className="text-sm text-gray-500 hover:text-gray-700 transition-colors">
+                Admin Portal
+              </Link>
+            </div>
           </div>
         </div>
       </section>

@@ -3,13 +3,13 @@ import { prisma } from '@/lib/db'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const bookingId = params.id
+    const { id } = await params
     
     const booking = await prisma.booking.findUnique({
-      where: { id: bookingId },
+      where: { id },
       include: {
         user: {
           select: {
@@ -53,10 +53,10 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const bookingId = params.id
+    const { id } = await params
     const body = await request.json()
     
     const { status } = body
@@ -69,7 +69,7 @@ export async function PATCH(
     }
     
     const booking = await prisma.booking.update({
-      where: { id: bookingId },
+      where: { id },
       data: { status },
       include: {
         user: {
