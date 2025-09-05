@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { pricingRequestSchema } from '@/lib/validations'
 
 // Real distance calculation using Google Maps Distance Matrix API
-const calculateDistance = async (pickup: string, dropoff: string): Promise<number> => {
+const calculateDistance = async (pickup: string, dropoff: string): Promise<number | null> => {
   const apiKey = process.env.GOOGLE_MAPS_API_KEY
   
   if (!apiKey) {
-    console.warn('Google Maps API key not available, using fallback distance')
-    return 25 // fallback
+    console.warn('Google Maps API key not available')
+    return null
   }
 
   try {
@@ -23,25 +23,31 @@ const calculateDistance = async (pickup: string, dropoff: string): Promise<numbe
       return Math.round(distanceMiles * 10) / 10 // Round to 1 decimal place
     } else {
       console.warn('Distance Matrix API returned invalid response:', data.status)
-      return 25 // fallback
+      return null
     }
   } catch (error) {
     console.error('Error calculating distance:', error)
-    return 25 // fallback
+    return null
   }
 }
 
 const calculatePrice = async (pickup: string, dropoff: string, passengers: number, rideType: string) => {
-  // Base prices for different vehicle types
+  // Base prices for different vehicle types (now $0 base)
   const basePrices = {
-    STANDARD: 2500, // $25 base
-    SUV: 3500,      // $35 base
-    LUXURY: 5000    // $50 base
+    STANDARD: 0, // $0 base
+    SUV: 0,      // $0 base
+    LUXURY: 0    // $0 base
   }
 
   // Get real distance using Google Maps API
   const distanceMiles = await calculateDistance(pickup, dropoff)
-  const pricePerMile = 240 // $2.40 per mile
+  
+  // Return null if distance calculation failed
+  if (distanceMiles === null) {
+    return null
+  }
+  
+  const pricePerMile = 1 // $0.01 per mile (1 cent)
 
   // Calculate base price
   let basePrice = basePrices[rideType as keyof typeof basePrices] || basePrices.STANDARD
@@ -76,6 +82,14 @@ export async function POST(request: NextRequest) {
     
     // Calculate price
     const pricing = await calculatePrice(pickup, dropoff, passengers, rideType)
+    
+    // Return error if pricing calculation failed
+    if (pricing === null) {
+      return NextResponse.json(
+        { success: false, error: 'Unable to calculate distance and pricing' },
+        { status: 500 }
+      )
+    }
     
     return NextResponse.json({
       success: true,
