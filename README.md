@@ -6,11 +6,47 @@ A premium ride booking platform for trips across the Greater Bay Area, with a fo
 
 ### Prerequisites
 
-- Node.js 20+
-- Docker and Docker Compose
-- PostgreSQL (or use Docker)
+- Node.js 20+ (for local development)
+- Docker and Docker Compose 2.0+
+- At least 2GB RAM available for containers
 
-### Local Development
+### Option 1: Docker Development (Recommended)
+
+1. **Clone and setup**
+   ```bash
+   git clone <repository-url>
+   cd lgsfo
+   cp env.example settings.env
+   ```
+
+2. **Configure environment**
+   Edit `settings.env` with your actual API keys:
+   ```bash
+   # Required: Update these with your actual values
+   GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+   STRIPE_SECRET_KEY=sk_test_your_stripe_key
+   STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_key
+   STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
+   RESEND_API_KEY=re_your_resend_key
+   ```
+
+3. **Start all services**
+   ```bash
+   docker-compose up --build
+   ```
+
+4. **Access the application**
+   - Frontend: http://localhost:3000
+   - API Health: http://localhost:3000/api/health
+   - Traefik Dashboard: http://localhost:8080
+
+5. **Stop services**
+   ```bash
+   docker-compose down
+   ```
+
+### Option 2: Local Development
 
 1. **Clone and setup**
    ```bash
@@ -47,19 +83,6 @@ A premium ride booking platform for trips across the Greater Bay Area, with a fo
 6. **Visit the application**
    - Frontend: http://localhost:3000
    - API Health: http://localhost:3000/api/health
-
-### Docker Development
-
-```bash
-# Start all services
-docker-compose up -d
-
-# View logs
-docker-compose logs -f app
-
-# Stop services
-docker-compose down
-```
 
 ## 🛠 Tech Stack
 
@@ -107,13 +130,48 @@ docs/                  # Project documentation
 
 ### Environment Variables
 
-Copy `env.example` to `.env.local` and configure:
+The application uses different environment files for different deployment scenarios:
 
-- `DATABASE_URL`: PostgreSQL connection string
-- `GOOGLE_MAPS_API_KEY`: Google Maps API key
-- `STRIPE_SECRET_KEY`: Stripe secret key (or Square credentials)
-- `RESEND_API_KEY`: Email service API key
-- `NEXTAUTH_SECRET`: Authentication secret
+#### Development (Docker)
+- **File**: `settings.env` (used by `docker-compose.yml`)
+- **Setup**: `cp env.example settings.env`
+- **Database URL**: Automatically configured for Docker containers
+
+#### Local Development
+- **File**: `.env.local` (used by Next.js)
+- **Setup**: `cp env.example .env.local`
+- **Database URL**: Update to point to your local PostgreSQL
+
+#### Production
+- **File**: `.env.production` (used by `docker-compose.prod.yml`)
+- **Setup**: `cp env.production.example .env.production`
+- **Security**: Never commit this file to version control
+
+### Required Environment Variables
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@host:5432/db` |
+| `GOOGLE_MAPS_API_KEY` | Google Maps API key | `AIzaSy...` |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Public Google Maps API key | `AIzaSy...` |
+| `STRIPE_SECRET_KEY` | Stripe secret key | `sk_test_...` or `sk_live_...` |
+| `STRIPE_PUBLISHABLE_KEY` | Stripe publishable key | `pk_test_...` or `pk_live_...` |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook secret | `whsec_...` |
+| `RESEND_API_KEY` | Email service API key | `re_...` |
+| `ADMIN_USERNAME` | Admin login username | `admin` |
+| `ADMIN_PASSWORD` | Admin login password | `secure_password` |
+| `NEXTAUTH_SECRET` | NextAuth secret key | `random_string` |
+| `NEXTAUTH_URL` | Application URL | `http://localhost:3000` |
+
+### Optional Environment Variables
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `TWILIO_ACCOUNT_SID` | Twilio account SID | `AC...` |
+| `TWILIO_AUTH_TOKEN` | Twilio auth token | `...` |
+| `TWILIO_PHONE_NUMBER` | Twilio phone number | `+1234567890` |
+| `DOMAIN` | Production domain | `yourdomain.com` |
+| `ACME_EMAIL` | Email for SSL certificates | `admin@yourdomain.com` |
 
 ### Database
 
@@ -155,29 +213,136 @@ See `docs/` folder for detailed milestone documentation.
 
 ## 🐳 Deployment
 
-### Docker Production
+### Docker Development
 
 ```bash
-# Build and run
-docker-compose -f docker-compose.prod.yml up -d
+# Start all services (development)
+docker-compose up --build
 
-# Or build manually
-docker build -t lgsfo .
-docker run -p 3000:3000 lgsfo
+# View logs
+docker-compose logs -f app
+
+# Stop services
+docker-compose down
+```
+
+### Docker Production
+
+1. **Setup production environment**
+   ```bash
+   # Copy production environment template
+   cp env.production.example .env.production
+   
+   # Edit with your production values
+   nano .env.production
+   ```
+
+2. **Deploy to production**
+   ```bash
+   # Deploy with production configuration
+   docker-compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+   
+   # View logs
+   docker-compose -f docker-compose.prod.yml logs -f
+   
+   # Stop production services
+   docker-compose -f docker-compose.prod.yml down
+   ```
+
+3. **Production features**
+   - SSL/TLS termination via Traefik
+   - Automatic HTTPS with Let's Encrypt
+   - Health checks and auto-restart
+   - Database migrations run automatically
+   - Optimized multi-stage builds
+
+### Manual Docker Build
+
+```bash
+# Build production image
+docker build -t lgsfo:latest .
+
+# Run with environment file
+docker run -p 3000:3000 --env-file .env.production lgsfo:latest
 ```
 
 ### Apple Silicon Optimization
 
 The Docker setup is optimized for Apple Silicon (M1/M2/M3/M4) with:
-- Alpine Linux base images
-- Multi-stage builds
+- Alpine Linux base images for smaller size
+- Multi-stage builds for optimization
 - Volume persistence for database
+- Health checks for reliability
+
+### Docker Services
+
+| Service | Port | Description |
+|---------|------|-------------|
+| **app** | 3000 | Next.js application |
+| **postgres** | 5432 | PostgreSQL database |
+| **traefik** | 80, 443, 8080 | Reverse proxy and SSL termination |
+
+### Health Monitoring
+
+All services include health checks:
+- **PostgreSQL**: `pg_isready` command
+- **Application**: HTTP GET to `/api/health`
+- **Traefik**: Built-in health monitoring
+
+### Troubleshooting
+
+```bash
+# Check service status
+docker-compose ps
+
+# View service logs
+docker-compose logs -f [service-name]
+
+# Restart specific service
+docker-compose restart [service-name]
+
+# Reset everything (WARNING: deletes data)
+docker-compose down -v
+docker-compose up --build
+```
+
+For detailed Docker deployment instructions, see [README-Docker.md](README-Docker.md).
 
 ## 📚 Documentation
 
 - [Project Overview](LETSGOSFO_README.md)
+- [Docker Deployment Guide](README-Docker.md) - Comprehensive Docker setup and deployment
 - [Development Guidelines](.cursorrules)
 - [Milestone Documentation](docs/)
+  - [M0: Setup and Foundations](docs/M0-Setup.md)
+  - [M1: Booking MVP](docs/M1-Booking-MVP.md)
+  - [M2: Admin Features](docs/M2-Admin.md)
+  - [M3: Customer Accounts](docs/M3-Accounts.md)
+  - [M4: Enhancements](docs/M4-Enhancements.md)
+  - [Payments Integration](docs/Payments.md)
+
+## 🔒 Security
+
+### Environment Files
+
+**IMPORTANT**: Never commit environment files with real credentials to version control.
+
+- ✅ **Safe to commit**: `env.example`, `env.production.example`
+- ❌ **Never commit**: `settings.env`, `.env.local`, `.env.production`
+
+### API Keys
+
+- Use test keys for development
+- Rotate production keys regularly
+- Use environment-specific configurations
+- Monitor API usage and costs
+
+### Database Security
+
+- Use strong passwords for production
+- Enable SSL connections in production
+- Regular backups and testing
+- Monitor database access logs
 
 ## 🤝 Contributing
 
@@ -185,6 +350,7 @@ The Docker setup is optimized for Apple Silicon (M1/M2/M3/M4) with:
 2. Use conventional commits
 3. Update documentation for new features
 4. Test thoroughly before submitting
+5. Never commit environment files with real credentials
 
 ## 📄 License
 
