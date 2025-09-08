@@ -5,9 +5,9 @@ import { requireAdminAuth } from '@/lib/auth'
 import { BookingStatus } from '@prisma/client'
 import Stripe from 'stripe'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2025-07-30.basil'
-})
+}) : null
 
 const updateSchema = z.object({
   status: z.nativeEnum(BookingStatus).optional(),
@@ -39,7 +39,6 @@ export async function GET(
           select: {
             id: true,
             stripePaymentId: true,
-            stripePaymentIntentId: true,
             amountCents: true,
             currency: true,
             status: true,
@@ -96,7 +95,7 @@ export async function PATCH(
     }
     
     // Handle payment capture when marking as completed
-    if (updateData.status === 'COMPLETED') {
+    if (updateData.status === 'COMPLETED' && stripe) {
       const authorizedPayment = existingBooking.payments.find(
         payment => payment.status === 'AUTHORIZED' && payment.stripePaymentIntentId
       )
@@ -113,8 +112,6 @@ export async function PATCH(
             { status: 500 }
           )
         }
-      } else {
-        console.warn(`No authorized payment with valid Payment Intent ID found for booking ${id}`)
       }
     }
     

@@ -22,21 +22,21 @@ services:
     networks:
       - lgsfo-network
 
-  # Database Migration Service
-  db-migrate:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: lgsfo-migrate
-    environment:
-      - DATABASE_URL=postgresql://lgsfo_user:${POSTGRES_PASSWORD:-lgsfo_password}@postgres:5432/lgsfo
-    depends_on:
-      postgres:
-        condition: service_healthy
-    command: ["npx", "prisma", "migrate", "deploy"]
-    networks:
-      - lgsfo-network
-    restart: "no"
+  # Database Migration Service (DISABLED - Use manual migration)
+  # db-migrate:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: lgsfo-migrate
+  #   environment:
+  #     - DATABASE_URL=postgresql://lgsfo_user:${POSTGRES_PASSWORD:-lgsfo_password}@postgres:5432/lgsfo
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   command: ["npx", "prisma", "migrate", "deploy"]
+  #   networks:
+  #     - lgsfo-network
+  #   restart: "no"
 
   # Next.js Application
   app:
@@ -47,6 +47,7 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://lgsfo_user:${POSTGRES_PASSWORD:-lgsfo_password}@postgres:5432/lgsfo
+      - DB_HOST=postgres
       - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
       - NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
       - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
@@ -65,8 +66,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      db-migrate:
-        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
       interval: 30s
@@ -76,6 +75,14 @@ services:
     restart: unless-stopped
     networks:
       - lgsfo-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
 
   # Traefik Reverse Proxy
   traefik:

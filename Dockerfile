@@ -64,5 +64,5 @@ ENV PORT 3000
 # set hostname to localhost
 ENV HOSTNAME "0.0.0.0"
 
-# Use startup script to handle database connection
-CMD ["./scripts/start.sh", "node", "server.js"]
+# Start the application directly
+CMD ["node", "server.js"]

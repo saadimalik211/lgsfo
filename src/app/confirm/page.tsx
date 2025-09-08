@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -19,7 +19,7 @@ interface BookingDetails {
   status: string
 }
 
-export default function ConfirmationPage() {
+function ConfirmationContent() {
   const searchParams = useSearchParams()
   const bookingId = searchParams.get('bookingId')
   const sessionId = searchParams.get('session_id')
@@ -72,7 +72,7 @@ export default function ConfirmationPage() {
           <CardHeader>
             <CardTitle className="text-red-600">Booking Not Found</CardTitle>
             <CardDescription>
-              We couldn't find the booking details. Please contact support if you believe this is an error.
+              We couldn&apos;t find the booking details. Please contact support if you believe this is an error.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -178,7 +178,7 @@ export default function ConfirmationPage() {
         {/* Next Steps */}
         <Card className="shadow-lg mb-6">
           <CardHeader>
-            <CardTitle>What's Next?</CardTitle>
+            <CardTitle>What&apos;s Next?</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-start gap-3">
@@ -187,7 +187,7 @@ export default function ConfirmationPage() {
               </div>
               <div>
                 <p className="font-medium text-slate-900">Confirmation Email</p>
-                <p className="text-slate-600">You'll receive a detailed confirmation email shortly.</p>
+                <p className="text-slate-600">You&apos;ll receive a detailed confirmation email shortly.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -196,7 +196,7 @@ export default function ConfirmationPage() {
               </div>
               <div>
                 <p className="font-medium text-slate-900">Driver Assignment</p>
-                <p className="text-slate-600">Your driver will be assigned and you'll receive their details 30 minutes before pickup.</p>
+                <p className="text-slate-600">Your driver will be assigned and you&apos;ll receive their details 30 minutes before pickup.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -231,5 +231,13 @@ export default function ConfirmationPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function ConfirmationPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ConfirmationContent />
+    </Suspense>
   )
 }
