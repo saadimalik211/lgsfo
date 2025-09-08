@@ -39,6 +39,7 @@ export async function GET(
           select: {
             id: true,
             stripePaymentId: true,
+            stripePaymentIntentId: true,
             amountCents: true,
             currency: true,
             status: true,

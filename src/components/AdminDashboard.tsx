@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { AdminHeader } from './AdminHeader'
 import { BookingTable } from './BookingTable'
-import { BookingDetail } from './BookingDetail'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatCurrency } from '@/lib/utils'
 import { BookingStatus } from '@prisma/client'
@@ -23,6 +22,10 @@ interface Booking {
   status: BookingStatus
   createdAt: string
   updatedAt: string
+  // Customer information stored directly on booking
+  customerName: string | null
+  customerEmail: string | null
+  customerPhone: string | null
   user: {
     id: string
     name: string
@@ -47,7 +50,6 @@ interface AdminDashboardProps {
 
 export const AdminDashboard = ({ username }: AdminDashboardProps) => {
   const [bookings, setBookings] = useState<Booking[]>([])
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -91,31 +93,12 @@ export const AdminDashboard = ({ username }: AdminDashboardProps) => {
             : booking
         )
       )
-
-      // Update selected booking if it's the one being changed
-      if (selectedBooking?.id === bookingId) {
-        setSelectedBooking(prev => prev ? { ...prev, status } : null)
-      }
     } catch (err) {
       console.error('Error updating booking status:', err)
       // You could add a toast notification here
     }
   }
 
-  const handleViewBooking = async (bookingId: string) => {
-    try {
-      const response = await fetch(`/api/admin/bookings/${bookingId}`)
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch booking details')
-      }
-      
-      const data = await response.json()
-      setSelectedBooking(data.booking)
-    } catch (err) {
-      console.error('Error fetching booking details:', err)
-    }
-  }
 
   useEffect(() => {
     fetchBookings()
@@ -237,19 +220,9 @@ export const AdminDashboard = ({ username }: AdminDashboardProps) => {
         {/* Bookings Table */}
         <BookingTable
           bookings={bookings}
-          onViewBooking={handleViewBooking}
           onStatusChange={handleStatusChange}
         />
       </div>
-
-      {/* Booking Detail Modal */}
-      {selectedBooking && (
-        <BookingDetail
-          booking={selectedBooking}
-          onClose={() => setSelectedBooking(null)}
-          onStatusChange={handleStatusChange}
-        />
-      )}
     </div>
   )
 }

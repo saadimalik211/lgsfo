@@ -96,10 +96,31 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       }
     })
 
-    // Update booking status
+    // Update booking status and customer information from Stripe session
+    const updateData: any = { status: 'CONFIRMED' }
+    
+    // If customer information is missing from booking, try to get it from Stripe session
+    const existingBooking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      select: { customerName: true, customerEmail: true, customerPhone: true }
+    })
+    
+    if (existingBooking && (!existingBooking.customerName || !existingBooking.customerEmail)) {
+      // Get customer details from Stripe session
+      const customerEmail = session.customer_email || session.customer_details?.email
+      const customerName = session.customer_details?.name
+      
+      if (customerEmail && !existingBooking.customerEmail) {
+        updateData.customerEmail = customerEmail
+      }
+      if (customerName && !existingBooking.customerName) {
+        updateData.customerName = customerName
+      }
+    }
+
     await prisma.booking.update({
       where: { id: bookingId },
-      data: { status: 'CONFIRMED' }
+      data: updateData
     })
 
     console.log(`Payment authorized for booking ${bookingId}`)

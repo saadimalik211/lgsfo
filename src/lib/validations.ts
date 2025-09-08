@@ -10,6 +10,10 @@ export const bookingSchema = z.object({
   extras: z.array(z.string()).optional(),
   rideType: z.enum(['STANDARD', 'SUV', 'LUXURY']).default('STANDARD'),
   priceCents: z.number().int().positive(),
+  // Customer information
+  customerName: z.string().min(1, 'Customer name is required'),
+  customerEmail: z.string().email('Invalid email address'),
+  customerPhone: z.string().optional(),
 })
 
 export const pricingRequestSchema = z.object({

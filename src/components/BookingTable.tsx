@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -23,6 +24,10 @@ interface Booking {
   priceCents: number
   status: BookingStatus
   createdAt: string
+  // Customer information stored directly on booking
+  customerName: string | null
+  customerEmail: string | null
+  customerPhone: string | null
   user: {
     id: string
     name: string
@@ -38,7 +43,6 @@ interface Booking {
 
 interface BookingTableProps {
   bookings: Booking[]
-  onViewBooking: (bookingId: string) => void
   onStatusChange: (bookingId: string, status: BookingStatus) => void
 }
 
@@ -57,16 +61,24 @@ const getStatusBadgeVariant = (status: BookingStatus) => {
   }
 }
 
-export const BookingTable = ({ bookings, onViewBooking, onStatusChange }: BookingTableProps) => {
+export const BookingTable = ({ bookings, onStatusChange }: BookingTableProps) => {
+  const router = useRouter()
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
 
+  const handleViewBooking = (bookingId: string) => {
+    router.push(`/admin/bookings/${bookingId}`)
+  }
+
   const filteredBookings = bookings.filter(booking => {
+    const customerName = booking.customerName || booking.user?.name || ''
+    const customerEmail = booking.customerEmail || booking.user?.email || ''
+    
     const matchesSearch = 
       booking.pickup.toLowerCase().includes(searchTerm.toLowerCase()) ||
       booking.dropoff.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.user?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.user?.email.toLowerCase().includes(searchTerm.toLowerCase())
+      customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customerEmail.toLowerCase().includes(searchTerm.toLowerCase())
     
     const matchesStatus = statusFilter === 'all' || booking.status === statusFilter
     
@@ -126,10 +138,16 @@ export const BookingTable = ({ bookings, onViewBooking, onStatusChange }: Bookin
                 <TableRow key={booking.id}>
                   <TableCell>
                     <div>
-                      <div className="font-medium">{booking.user?.name || 'Guest'}</div>
-                      <div className="text-sm text-gray-500">{booking.user?.email}</div>
-                      {booking.user?.phone && (
-                        <div className="text-sm text-gray-500">{booking.user.phone}</div>
+                      <div className="font-medium">
+                        {booking.customerName || booking.user?.name || 'Guest'}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {booking.customerEmail || booking.user?.email || 'N/A'}
+                      </div>
+                      {(booking.customerPhone || booking.user?.phone) && (
+                        <div className="text-sm text-gray-500">
+                          {booking.customerPhone || booking.user?.phone}
+                        </div>
                       )}
                     </div>
                   </TableCell>
@@ -187,7 +205,7 @@ export const BookingTable = ({ bookings, onViewBooking, onStatusChange }: Bookin
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => onViewBooking(booking.id)}
+                      onClick={() => handleViewBooking(booking.id)}
                       className="flex items-center gap-1"
                     >
                       <Eye className="h-4 w-4" />

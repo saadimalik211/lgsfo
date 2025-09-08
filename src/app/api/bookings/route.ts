@@ -17,7 +17,10 @@ export async function POST(request: NextRequest) {
       luggage,
       extras,
       rideType,
-      priceCents
+      priceCents,
+      customerName,
+      customerEmail,
+      customerPhone
     } = validatedData
     
     // Create booking in database
@@ -31,7 +34,10 @@ export async function POST(request: NextRequest) {
         extras: extras || [],
         rideType,
         priceCents,
-        status: 'PENDING'
+        status: 'PENDING',
+        customerName,
+        customerEmail,
+        customerPhone
       }
     })
     

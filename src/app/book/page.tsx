@@ -237,7 +237,10 @@ export default function BookingPage() {
         luggage: bookingData.luggage,
         extras: bookingData.extras,
         rideType: bookingData.rideType,
-        priceCents: priceEstimate.totalCents
+        priceCents: priceEstimate.totalCents,
+        customerName: bookingData.customerName,
+        customerEmail: bookingData.customerEmail,
+        customerPhone: bookingData.customerPhone
       }
       
       console.log('📤 Sending booking payload:', bookingPayload)
