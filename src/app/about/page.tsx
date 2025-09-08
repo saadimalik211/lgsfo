@@ -1,4 +1,4 @@
-import { Car, Shield, Clock, Phone, Mail, MapPin, CreditCard, Users, Star } from "lucide-react"
+import { Car, Shield, Clock, Phone, Mail, MapPin, CreditCard, Users, Star, FileText, Scale } from "lucide-react"
 import Link from "next/link"
 
 export default function About() {
@@ -84,168 +84,45 @@ export default function About() {
         </div>
       </section>
 
-      {/* Contact Information */}
+      {/* Information Links */}
       <section className="py-16 px-4 bg-white/50">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center space-y-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-              Contact Information
+              Important Information
             </h2>
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="bg-white rounded-xl shadow-lg p-6 text-center">
-                <Phone className="h-8 w-8 text-blue-600 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Phone</h3>
-                <p className="text-gray-600">(607) 542-6874</p>
-                <p className="text-sm text-gray-500 mt-2"></p>
-              </div>
-              <div className="bg-white rounded-xl shadow-lg p-6 text-center">
-                <Mail className="h-8 w-8 text-blue-600 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Email</h3>
-                <p className="text-gray-600">saadmali@gensosekai.com</p>
-                <p className="text-sm text-gray-500 mt-2">Response within 1 day</p>
-              </div>
-              <div className="bg-white rounded-xl shadow-lg p-6 text-center">
-                <MapPin className="h-8 w-8 text-blue-600 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Business Address</h3>
-                <p className="text-gray-600">
-                  1746 Carpentier Street<br />
-                  San Leandro, CA 94577
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Policies and Terms */}
-      <section className="py-16 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <div className="space-y-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-center">
-              Policies & Terms
-            </h2>
-            
-            <div className="grid md:grid-cols-2 gap-8">
-              {/* Cancellation Policy */}
-              <div className="bg-white rounded-xl shadow-lg p-8">
-                <h3 className="text-2xl font-bold text-gray-900 mb-6">Cancellation Policy</h3>
-                <div className="space-y-4 text-gray-600">
-                  <p><strong>Free Cancellation:</strong> Cancel up to 2 hours before your scheduled pickup time for a full refund.</p>
-                  <p><strong>Late Cancellation:</strong> Cancellations within 2 hours of pickup time will incur a 50% charge.</p>
-                  <p><strong>No-Show:</strong> Failure to appear at the scheduled pickup time will result in full charge.</p>
-                  <p><strong>Weather Conditions:</strong> In case of severe weather, we may cancel rides for safety. Full refunds will be provided.</p>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Link href="/contact" className="group">
+                <div className="bg-white rounded-xl shadow-lg p-6 text-center hover:shadow-xl transition-all duration-300 transform group-hover:scale-105">
+                  <Phone className="h-12 w-12 text-blue-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Contact Information</h3>
+                  <p className="text-gray-600 text-sm">Get in touch with us for bookings and support</p>
                 </div>
-              </div>
-
-              {/* Refund Policy */}
-              <div className="bg-white rounded-xl shadow-lg p-8">
-                <h3 className="text-2xl font-bold text-gray-900 mb-6">Refund Policy</h3>
-                <div className="space-y-4 text-gray-600">
-                  <p><strong>Processing Time:</strong> Refunds are processed within 3-5 business days to your original payment method.</p>
-                  <p><strong>Service Issues:</strong> If you experience service issues, please contact us immediately. We will investigate and provide appropriate compensation.</p>
-                  <p><strong>Payment Disputes:</strong> For payment disputes, please contact us first before initiating a chargeback.</p>
-                  <p><strong>Partial Refunds:</strong> Partial refunds may be provided for service modifications or delays beyond our control.</p>
+              </Link>
+              
+              <Link href="/policies" className="group">
+                <div className="bg-white rounded-xl shadow-lg p-6 text-center hover:shadow-xl transition-all duration-300 transform group-hover:scale-105">
+                  <FileText className="h-12 w-12 text-green-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Policies & Terms</h3>
+                  <p className="text-gray-600 text-sm">Cancellation, refund, and service policies</p>
                 </div>
-              </div>
-            </div>
-
-            {/* Terms of Service */}
-            <div className="bg-white rounded-xl shadow-lg p-8">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">Terms of Service</h3>
-              <div className="space-y-4 text-gray-600">
-                <p><strong>Service Agreement:</strong> By booking a ride with LETSGOSFO, you agree to our terms of service and policies.</p>
-                <p><strong>Liability:</strong> LETSGOSFO maintains appropriate insurance coverage. Our liability is limited to the cost of the ride service.</p>
-                <p><strong>Passenger Conduct:</strong> Passengers must behave respectfully. We reserve the right to refuse service for inappropriate behavior.</p>
-                <p><strong>Luggage Policy:</strong> Standard luggage allowance applies. Oversized items may incur additional charges.</p>
-                <p><strong>Modifications:</strong> We reserve the right to modify these terms with 30 days notice.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Security & Payment Information */}
-      <section className="py-16 px-4 bg-white/50">
-        <div className="container mx-auto max-w-6xl">
-          <div className="space-y-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-center">
-              Security & Payment Information
-            </h2>
-            
-            <div className="grid md:grid-cols-2 gap-8">
-              {/* Security */}
-              <div className="bg-white rounded-xl shadow-lg p-8">
-                <div className="flex items-center space-x-3 mb-6">
-                  <Shield className="h-8 w-8 text-green-600" />
-                  <h3 className="text-2xl font-bold text-gray-900">Security & Privacy</h3>
+              </Link>
+              
+              <Link href="/security" className="group">
+                <div className="bg-white rounded-xl shadow-lg p-6 text-center hover:shadow-xl transition-all duration-300 transform group-hover:scale-105">
+                  <Shield className="h-12 w-12 text-purple-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Security & Payment</h3>
+                  <p className="text-gray-600 text-sm">How we protect your data and process payments</p>
                 </div>
-                <div className="space-y-4 text-gray-600">
-                  <p><strong>PCI Compliance:</strong> All payment processing is handled securely through Stripe, which is PCI DSS compliant.</p>
-                  <p><strong>Data Protection:</strong> We use industry-standard encryption to protect your personal and payment information.</p>
-                  <p><strong>Privacy Policy:</strong> We collect and use your information only as necessary to provide our services. We do not sell your data to third parties.</p>
-                  <p><strong>Secure Communication:</strong> Our website uses HTTPS encryption for all data transmission.</p>
+              </Link>
+              
+              <Link href="/legal" className="group">
+                <div className="bg-white rounded-xl shadow-lg p-6 text-center hover:shadow-xl transition-all duration-300 transform group-hover:scale-105">
+                  <Scale className="h-12 w-12 text-indigo-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Legal Information</h3>
+                  <p className="text-gray-600 text-sm">Insurance, accessibility, and legal compliance</p>
                 </div>
-              </div>
-
-              {/* Payment Methods */}
-              <div className="bg-white rounded-xl shadow-lg p-8">
-                <div className="flex items-center space-x-3 mb-6">
-                  <CreditCard className="h-8 w-8 text-blue-600" />
-                  <h3 className="text-2xl font-bold text-gray-900">Accepted Payment Methods</h3>
-                </div>
-                <div className="space-y-4">
-                  <p className="text-gray-600">We accept all major credit and debit cards:</p>
-                  <div className="flex flex-wrap gap-4">
-                    <div className="bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium text-gray-700">Visa </div>
-                    <div className="bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium text-gray-700">Mastercard </div>
-                    <div className="bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium text-gray-700">American Express </div>
-                    <div className="bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium text-gray-700">Discover </div>
-                  </div>
-                  <p className="text-sm text-gray-500 mt-4">
-                    All payments are processed securely through Stripe. We do not store your payment information on our servers.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Legal Information */}
-      <section className="py-16 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <div className="space-y-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-center">
-              Legal Information
-            </h2>
-            
-            <div className="bg-white rounded-xl shadow-lg p-8">
-              <div className="space-y-6">
-                
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">Insurance Coverage</h3>
-                  <p className="text-gray-600">
-                    We maintain comprehensive commercial auto insurance coverage as required by California state law. 
-                    Coverage includes liability, collision, and comprehensive protection for all passengers and vehicles.
-                  </p>
-                </div>
-                
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">Accessibility</h3>
-                  <p className="text-gray-600">
-                    LETSGOSFO is committed to providing accessible transportation services. We comply with the 
-                    Americans with Disabilities Act (ADA) and provide wheelchair-accessible vehicles upon request. 
-                    Please contact us in advance to arrange accessible transportation.
-                  </p>
-                </div>
-                
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">Governing Law</h3>
-                  <p className="text-gray-600">
-                    These terms and conditions are governed by the laws of the State of California. 
-                  </p>
-                </div>
-              </div>
+              </Link>
             </div>
           </div>
         </div>
