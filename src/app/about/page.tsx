@@ -96,7 +96,7 @@ export default function About() {
                 <Phone className="h-8 w-8 text-blue-600 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Phone</h3>
                 <p className="text-gray-600">(607) 542-6874</p>
-                <p className="text-sm text-gray-500 mt-2">/p>
+                <p className="text-sm text-gray-500 mt-2"></p>
               </div>
               <div className="bg-white rounded-xl shadow-lg p-6 text-center">
                 <Mail className="h-8 w-8 text-blue-600 mx-auto mb-4" />
