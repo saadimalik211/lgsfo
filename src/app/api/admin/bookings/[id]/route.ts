@@ -39,6 +39,7 @@ export async function GET(
           select: {
             id: true,
             stripePaymentId: true,
+            stripePaymentIntentId: true,
             amountCents: true,
             currency: true,
             status: true,
@@ -100,7 +101,7 @@ export async function PATCH(
         payment => payment.status === 'AUTHORIZED' && payment.stripePaymentIntentId
       )
       
-      if (authorizedPayment) {
+      if (authorizedPayment && authorizedPayment.stripePaymentIntentId) {
         try {
           // Capture the authorized payment
           await stripe.paymentIntents.capture(authorizedPayment.stripePaymentIntentId)
@@ -112,6 +113,8 @@ export async function PATCH(
             { status: 500 }
           )
         }
+      } else {
+        console.warn(`No authorized payment with valid Payment Intent ID found for booking ${id}`)
       }
     }
     
