@@ -96,7 +96,7 @@ export default function About() {
                 <Phone className="h-8 w-8 text-blue-600 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Phone</h3>
                 <p className="text-gray-600">(607) 542-6874</p>
-                <p className="text-sm text-gray-500 mt-2">Available 24/7</p>
+                <p className="text-sm text-gray-500 mt-2">/p>
               </div>
               <div className="bg-white rounded-xl shadow-lg p-6 text-center">
                 <Mail className="h-8 w-8 text-blue-600 mx-auto mb-4" />
@@ -243,7 +243,6 @@ export default function About() {
                   <h3 className="text-xl font-bold text-gray-900 mb-3">Governing Law</h3>
                   <p className="text-gray-600">
                     These terms and conditions are governed by the laws of the State of California. 
-                    Any disputes will be resolved in the courts of San Francisco County, California.
                   </p>
                 </div>
               </div>
