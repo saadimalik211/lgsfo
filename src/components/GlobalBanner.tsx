@@ -15,12 +15,15 @@ export default function GlobalBanner() {
             </span>
           </Link>
           
-          <div className="flex items-center space-x-6">
-            <Link href="/about" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
-              About
+          <div className="flex items-center">
+            <Link href="/book" className="text-gray-700 hover:text-blue-600 transition-colors font-medium pr-8">
+              Book Ride |
             </Link>
-            <Link href="/book" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors font-medium">
-              Book Ride
+            <Link href="/about" className="text-gray-700 hover:text-blue-600 transition-colors font-medium px-8">
+               About Us |
+            </Link>
+            <Link href="/admin/login" className="text-gray-700 hover:text-blue-600 transition-colors font-medium pl-8">
+              Admin Portal
             </Link>
           </div>
         </div>
