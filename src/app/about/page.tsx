@@ -95,21 +95,21 @@ export default function About() {
               <div className="bg-white rounded-xl shadow-lg p-6 text-center">
                 <Phone className="h-8 w-8 text-blue-600 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Phone</h3>
-                <p className="text-gray-600">(415) 555-0123</p>
+                <p className="text-gray-600">(607) 542-6874</p>
                 <p className="text-sm text-gray-500 mt-2">Available 24/7</p>
               </div>
               <div className="bg-white rounded-xl shadow-lg p-6 text-center">
                 <Mail className="h-8 w-8 text-blue-600 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Email</h3>
-                <p className="text-gray-600">info@letsgosfo.com</p>
-                <p className="text-sm text-gray-500 mt-2">Response within 2 hours</p>
+                <p className="text-gray-600">saadmali@gensosekai.com</p>
+                <p className="text-sm text-gray-500 mt-2">Response within 1 day</p>
               </div>
               <div className="bg-white rounded-xl shadow-lg p-6 text-center">
                 <MapPin className="h-8 w-8 text-blue-600 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Business Address</h3>
                 <p className="text-gray-600">
-                  123 Transportation Way<br />
-                  San Francisco, CA 94102
+                  1746 Carpentier Street<br />
+                  San Leandro, CA 94577
                 </p>
               </div>
             </div>
@@ -196,10 +196,10 @@ export default function About() {
                 <div className="space-y-4">
                   <p className="text-gray-600">We accept all major credit and debit cards:</p>
                   <div className="flex flex-wrap gap-4">
-                    <div className="bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium text-gray-700">Visa</div>
-                    <div className="bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium text-gray-700">Mastercard</div>
-                    <div className="bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium text-gray-700">American Express</div>
-                    <div className="bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium text-gray-700">Discover</div>
+                    <div className="bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium text-gray-700">Visa </div>
+                    <div className="bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium text-gray-700">Mastercard </div>
+                    <div className="bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium text-gray-700">American Express </div>
+                    <div className="bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium text-gray-700">Discover </div>
                   </div>
                   <p className="text-sm text-gray-500 mt-4">
                     All payments are processed securely through Stripe. We do not store your payment information on our servers.
@@ -221,13 +221,6 @@ export default function About() {
             
             <div className="bg-white rounded-xl shadow-lg p-8">
               <div className="space-y-6">
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">Business Registration</h3>
-                  <p className="text-gray-600">
-                    LETSGOSFO is a registered transportation service provider in the State of California. 
-                    Business License: #TR-2024-001234
-                  </p>
-                </div>
                 
                 <div>
                   <h3 className="text-xl font-bold text-gray-900 mb-3">Insurance Coverage</h3>
