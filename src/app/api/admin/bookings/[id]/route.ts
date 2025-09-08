@@ -3,6 +3,11 @@ import { z } from 'zod'
 import { db } from '@/lib/db'
 import { requireAdminAuth } from '@/lib/auth'
 import { BookingStatus } from '@prisma/client'
+import Stripe from 'stripe'
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2025-07-30.basil'
+})
 
 const updateSchema = z.object({
   status: z.nativeEnum(BookingStatus).optional(),
@@ -74,9 +79,12 @@ export async function PATCH(
     
     const { id } = await params
     
-    // Check if booking exists
+    // Check if booking exists and get payment info
     const existingBooking = await db.booking.findUnique({
-      where: { id }
+      where: { id },
+      include: {
+        payments: true
+      }
     })
     
     if (!existingBooking) {
@@ -84,6 +92,27 @@ export async function PATCH(
         { error: 'Booking not found' },
         { status: 404 }
       )
+    }
+    
+    // Handle payment capture when marking as completed
+    if (updateData.status === 'COMPLETED') {
+      const authorizedPayment = existingBooking.payments.find(
+        payment => payment.status === 'AUTHORIZED' && payment.stripePaymentIntentId
+      )
+      
+      if (authorizedPayment) {
+        try {
+          // Capture the authorized payment
+          await stripe.paymentIntents.capture(authorizedPayment.stripePaymentIntentId)
+          console.log(`Payment captured for booking ${id}: ${authorizedPayment.stripePaymentIntentId}`)
+        } catch (stripeError) {
+          console.error('Failed to capture payment:', stripeError)
+          return NextResponse.json(
+            { error: 'Failed to capture payment. Please try again.' },
+            { status: 500 }
+          )
+        }
+      }
     }
     
     // Update booking
@@ -106,6 +135,7 @@ export async function PATCH(
           select: {
             id: true,
             stripePaymentId: true,
+            stripePaymentIntentId: true,
             amountCents: true,
             currency: true,
             status: true,

@@ -32,6 +32,7 @@ interface Booking {
   payments: Array<{
     id: string
     stripePaymentId: string | null
+    stripePaymentIntentId: string | null
     amountCents: number
     currency: string
     status: string
@@ -63,10 +64,14 @@ const getStatusBadgeVariant = (status: BookingStatus) => {
 
 const getPaymentStatusBadgeVariant = (status: string) => {
   switch (status) {
+    case 'AUTHORIZED':
+      return 'default'
     case 'SUCCEEDED':
       return 'success'
     case 'FAILED':
       return 'destructive'
+    case 'CANCELLED':
+      return 'secondary'
     case 'REQUIRES_PAYMENT_METHOD':
       return 'warning'
     case 'REFUNDED':
@@ -206,6 +211,11 @@ export const BookingDetail = ({ booking, onClose, onStatusChange }: BookingDetai
                             <p className="text-sm text-gray-500">
                               {format(new Date(payment.createdAt), 'MMM dd, yyyy h:mm a')}
                             </p>
+                            {payment.stripePaymentIntentId && (
+                              <p className="text-xs text-gray-400">
+                                Payment Intent: {payment.stripePaymentIntentId.slice(-8)}
+                              </p>
+                            )}
                           </div>
                           <Badge variant={getPaymentStatusBadgeVariant(payment.status)}>
                             {payment.status}
@@ -213,6 +223,13 @@ export const BookingDetail = ({ booking, onClose, onStatusChange }: BookingDetai
                         </div>
                       ))}
                     </div>
+                    {booking.payments.some(p => p.status === 'AUTHORIZED') && (
+                      <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-sm text-blue-800">
+                          💡 Payment is authorized and will be captured when you mark this booking as completed.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>

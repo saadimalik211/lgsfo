@@ -34,7 +34,7 @@ interface PricingData {
 
 declare global {
   interface Window {
-    google: any
+    google: typeof google
   }
 }
 
@@ -185,7 +185,7 @@ export default function BookingPage() {
     return () => clearTimeout(timer)
   }, [bookingData.pickup, bookingData.dropoff])
 
-  const handleInputChange = (field: keyof BookingData, value: any) => {
+  const handleInputChange = (field: keyof BookingData, value: string | number | Date | null) => {
     setBookingData(prev => ({ ...prev, [field]: value }))
   }
 

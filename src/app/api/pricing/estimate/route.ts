@@ -50,7 +50,7 @@ const calculatePrice = async (pickup: string, dropoff: string, passengers: numbe
   const pricePerMile = 1 // $0.01 per mile (1 cent)
 
   // Calculate base price
-  let basePrice = basePrices[rideType as keyof typeof basePrices] || basePrices.STANDARD
+  const basePrice = basePrices[rideType as keyof typeof basePrices] || basePrices.STANDARD
   
   // Add distance cost
   const distanceCost = Math.round(distanceMiles * pricePerMile)

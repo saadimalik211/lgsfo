@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Create Stripe checkout session
+    // Create Stripe checkout session with manual capture
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
             currency: 'usd',
             product_data: {
               name: `LETSGOSFO Ride - ${booking.pickup} to ${booking.dropoff}`,
-              description: `Premium ride service on ${new Date(booking.datetime).toLocaleDateString()} at ${new Date(booking.datetime).toLocaleTimeString()}`,
+              description: `Premium ride service on ${new Date(booking.datetime).toLocaleDateString()} at ${new Date(booking.datetime).toLocaleTimeString()}. Payment will be processed after ride completion.`,
             },
             unit_amount: booking.priceCents,
           },
@@ -56,20 +56,29 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'payment',
+      payment_intent_data: {
+        capture_method: 'manual', // This creates an authorization hold instead of immediate charge
+        statement_descriptor_suffix: 'LETSGOSFO',
+        metadata: {
+          bookingId: bookingId,
+          pickup: booking.pickup,
+          dropoff: booking.dropoff,
+          datetime: booking.datetime.toISOString(),
+          passengers: booking.passengers.toString(),
+          rideType: booking.rideType,
+          customerEmail: customerEmail || '',
+          customerName: customerName || ''
+        }
+      },
       success_url: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/confirm?bookingId=${bookingId}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/book`,
       customer_email: customerEmail,
       metadata: {
-        bookingId: bookingId,
-        pickup: booking.pickup,
-        dropoff: booking.dropoff,
-        datetime: booking.datetime.toISOString(),
-        passengers: booking.passengers.toString(),
-        rideType: booking.rideType
+        bookingId: bookingId
       }
     })
     
-    // Create payment record
+    // Create payment record with session ID (we'll get the Payment Intent ID from webhook)
     await prisma.payment.create({
       data: {
         bookingId: bookingId,
@@ -91,7 +100,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Checkout error:', error)
     return NextResponse.json(
-      { success: false, error: 'Failed to create checkout session' },
+      { success: false, error: 'Failed to create payment authorization' },
       { status: 500 }
     )
   }

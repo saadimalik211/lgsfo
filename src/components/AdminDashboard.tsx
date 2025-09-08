@@ -5,9 +5,9 @@ import { AdminHeader } from './AdminHeader'
 import { BookingTable } from './BookingTable'
 import { BookingDetail } from './BookingDetail'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { formatCurrency } from '@/lib/utils'
 import { BookingStatus } from '@prisma/client'
+
 
 interface Booking {
   id: string
@@ -32,6 +32,7 @@ interface Booking {
   payments: Array<{
     id: string
     stripePaymentId: string | null
+    stripePaymentIntentId: string | null
     amountCents: number
     currency: string
     status: string
@@ -127,9 +128,14 @@ export const AdminDashboard = ({ username }: AdminDashboardProps) => {
     confirmed: bookings.filter(b => b.status === 'CONFIRMED').length,
     completed: bookings.filter(b => b.status === 'COMPLETED').length,
     cancelled: bookings.filter(b => b.status === 'CANCELLED').length,
-    totalRevenue: bookings
-      .filter(b => b.status === 'COMPLETED')
-      .reduce((sum, b) => sum + b.priceCents, 0)
+    totalRevenue: bookings.reduce((sum, booking) => {
+      const successfulPayment = booking.payments.find(p => p.status === 'SUCCEEDED')
+      return sum + (successfulPayment ? successfulPayment.amountCents : 0)
+    }, 0),
+    authorizedRevenue: bookings.reduce((sum, booking) => {
+      const authorizedPayment = booking.payments.find(p => p.status === 'AUTHORIZED')
+      return sum + (authorizedPayment ? authorizedPayment.amountCents : 0)
+    }, 0)
   }
 
   if (isLoading) {
@@ -177,7 +183,7 @@ export const AdminDashboard = ({ username }: AdminDashboardProps) => {
       
       <div className="p-6">
         {/* Dashboard Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
@@ -202,6 +208,17 @@ export const AdminDashboard = ({ username }: AdminDashboardProps) => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Authorized Revenue</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">
+                {formatCurrency(stats.authorizedRevenue)}
+              </div>
             </CardContent>
           </Card>
           

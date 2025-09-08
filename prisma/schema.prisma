@@ -43,15 +43,16 @@ model Booking {
 }
 
 model Payment {
-  id              String        @id @default(cuid())
-  bookingId       String
-  stripePaymentId String?
-  amountCents     Int
-  currency        String        @default("USD")
-  status          PaymentStatus @default(REQUIRES_PAYMENT_METHOD)
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  booking         Booking       @relation(fields: [bookingId], references: [id])
+  id                      String        @id @default(cuid())
+  bookingId               String
+  stripePaymentId         String?
+  stripePaymentIntentId   String?       // For authorization holds
+  amountCents             Int
+  currency                String        @default("USD")
+  status                  PaymentStatus @default(REQUIRES_PAYMENT_METHOD)
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+  booking                 Booking       @relation(fields: [bookingId], references: [id])
 
   @@map("payments")
 }
@@ -77,7 +78,9 @@ enum BookingStatus {
 
 enum PaymentStatus {
   REQUIRES_PAYMENT_METHOD
+  AUTHORIZED
   SUCCEEDED
   FAILED
   REFUNDED
+  CANCELLED
 }
