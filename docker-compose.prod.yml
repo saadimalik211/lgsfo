@@ -65,7 +65,7 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://0.0.0.0:3000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -73,6 +73,17 @@ services:
     restart: unless-stopped
     networks:
       - lgsfo-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.lgsfo.rule=Host(`${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.lgsfo.entrypoints=web"
+      - "traefik.http.routers.lgsfo.middlewares=redirect-to-https"
+      - "traefik.http.routers.lgsfo-secure.rule=Host(`${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.lgsfo-secure.entrypoints=websecure"
+      - "traefik.http.routers.lgsfo-secure.tls.certresolver=letsencrypt"
+      - "traefik.http.services.lgsfo.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
     deploy:
       resources:
         limits:
@@ -84,17 +95,20 @@ services:
 
   # Traefik Reverse Proxy
   traefik:
-    image: traefik:v2.10
+    image: traefik:v3.5
     container_name: lgsfo-traefik-prod
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.watch=true"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
       - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--log.level=DEBUG"
+      - "--accesslog=true"
     ports:
       - "80:80"
       - "443:443"
@@ -107,14 +121,6 @@ services:
     restart: unless-stopped
     networks:
       - lgsfo-network
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.lgsfo.rule=Host(`${DOMAIN:-localhost}`)"
-      - "traefik.http.routers.lgsfo.entrypoints=web"
-      - "traefik.http.routers.lgsfo-secure.rule=Host(`${DOMAIN:-localhost}`)"
-      - "traefik.http.routers.lgsfo-secure.entrypoints=websecure"
-      - "traefik.http.routers.lgsfo-secure.tls.certresolver=letsencrypt"
-      - "traefik.http.services.lgsfo.loadbalancer.server.port=3000"
 
 volumes:
   postgres_data_prod:
