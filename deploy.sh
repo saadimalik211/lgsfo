@@ -104,13 +104,49 @@ done
 
 # Run database migrations manually
 print_status "Running database migrations..."
-docker run --rm \
+
+# Get absolute path to current directory
+CURRENT_DIR=$(cd "$(dirname "$0")" && pwd)
+print_status "Using directory: ${CURRENT_DIR}"
+
+# Verify package.json exists
+if [ ! -f "${CURRENT_DIR}/package.json" ]; then
+    print_error "package.json not found in ${CURRENT_DIR}"
+    exit 1
+fi
+
+# Try the volume mount approach first
+if ! docker run --rm \
     --network lgsfo_lgsfo-network \
     -e DATABASE_URL="postgresql://lgsfo_user:${POSTGRES_PASSWORD}@lgsfo-postgres-prod:5432/lgsfo" \
-    -v "$(pwd):/app" \
+    -v "${CURRENT_DIR}:/app" \
     -w /app \
     node:20-alpine \
-    sh -c "npm install && npx prisma migrate deploy"
+    sh -c "ls -la /app && npm install && npx prisma migrate deploy"; then
+    
+    print_warning "Volume mount approach failed, trying alternative method..."
+    
+    # Alternative: Build a temporary image with the source code
+    print_status "Building temporary migration image..."
+    docker build -t lgsfo-migrate-temp -f - . << 'EOF'
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npx prisma generate
+CMD ["npx", "prisma", "migrate", "deploy"]
+EOF
+    
+    # Run migration using the temporary image
+    docker run --rm \
+        --network lgsfo_lgsfo-network \
+        -e DATABASE_URL="postgresql://lgsfo_user:${POSTGRES_PASSWORD}@lgsfo-postgres-prod:5432/lgsfo" \
+        lgsfo-migrate-temp
+        
+    # Clean up temporary image
+    docker rmi lgsfo-migrate-temp >/dev/null 2>&1 || true
+fi
 
 if [ $? -eq 0 ]; then
     print_success "Database migrations completed successfully!"
