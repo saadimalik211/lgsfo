@@ -54,6 +54,7 @@ model Payment {
   amountCents             Int
   currency                String        @default("USD")
   status                  PaymentStatus @default(REQUIRES_PAYMENT_METHOD)
+  paymentMethod           PaymentMethod @default(STRIPE)
   createdAt               DateTime      @default(now())
   updatedAt               DateTime      @updatedAt
   booking                 Booking       @relation(fields: [bookingId], references: [id])
@@ -87,4 +88,12 @@ enum PaymentStatus {
   FAILED
   REFUNDED
   CANCELLED
+}
+
+enum PaymentMethod {
+  STRIPE
+  CASH
+  VENMO
+  ZELLE
+  OTHER
 }

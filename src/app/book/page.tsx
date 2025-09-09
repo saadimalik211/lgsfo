@@ -57,7 +57,7 @@ export default function BookingPage() {
   const [bookingId, setBookingId] = useState<string | null>(null)
   const [isCalculating, setIsCalculating] = useState(false)
   const [googleLoaded, setGoogleLoaded] = useState(false)
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1)
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1)
 
   const pickupInputRef = useRef<HTMLInputElement>(null)
   const dropoffInputRef = useRef<HTMLInputElement>(null)
@@ -223,7 +223,7 @@ export default function BookingPage() {
     }
   }
 
-  const handleBooking = async () => {
+  const handleBooking = async (paymentMethod: 'stripe' | 'cash') => {
     if (!priceEstimate) return
 
     setLoading(true)
@@ -261,26 +261,50 @@ export default function BookingPage() {
 
       const newBookingId = bookingResult.data.bookingId
 
-      // Create checkout session
-      const checkoutResponse = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          bookingId: newBookingId,
-          customerEmail: bookingData.customerEmail,
-          customerName: bookingData.customerName
-        }),
-      })
+      if (paymentMethod === 'stripe') {
+        // Create checkout session for Stripe
+        const checkoutResponse = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            bookingId: newBookingId,
+            customerEmail: bookingData.customerEmail,
+            customerName: bookingData.customerName
+          }),
+        })
 
-      const checkoutData = await checkoutResponse.json()
-      
-      if (checkoutData.success && checkoutData.data.url) {
-        // Redirect to Stripe Checkout
-        window.location.href = checkoutData.data.url
+        const checkoutData = await checkoutResponse.json()
+        
+        if (checkoutData.success && checkoutData.data.url) {
+          // Redirect to Stripe Checkout
+          window.location.href = checkoutData.data.url
+        } else {
+          throw new Error(checkoutData.error)
+        }
       } else {
-        throw new Error(checkoutData.error)
+        // Handle cash/on-arrival payment
+        const cashResponse = await fetch('/api/bookings/cash-payment', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            bookingId: newBookingId,
+            customerEmail: bookingData.customerEmail,
+            customerName: bookingData.customerName
+          }),
+        })
+
+        const cashData = await cashResponse.json()
+        
+        if (cashData.success) {
+          // Redirect to confirmation page
+          window.location.href = `/confirm?bookingId=${newBookingId}&payment_method=cash`
+        } else {
+          throw new Error(cashData.error)
+        }
       }
     } catch (error) {
       console.error('Booking error:', error)
@@ -563,8 +587,8 @@ export default function BookingPage() {
     <div className="pt-8 pb-6 px-4">
       <div className="max-w-md mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Confirm & Pay</h1>
-          <p className="text-gray-600">Review your booking and complete payment</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Review Booking</h1>
+          <p className="text-gray-600">Please review your booking details</p>
         </div>
 
         <div className="space-y-6">
@@ -583,6 +607,10 @@ export default function BookingPage() {
               <div className="flex justify-between">
                 <span>Date:</span>
                 <span className="font-medium">{bookingData.datetime ? new Date(bookingData.datetime).toLocaleDateString() : 'Not set'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Time:</span>
+                <span className="font-medium">{bookingData.datetime ? new Date(bookingData.datetime).toLocaleTimeString() : 'Not set'}</span>
               </div>
               <div className="flex justify-between">
                 <span>Passengers:</span>
@@ -644,23 +672,13 @@ export default function BookingPage() {
             </div>
           )}
 
-          {/* Payment Button */}
+          {/* Continue Button */}
           <Button 
-            onClick={handleBooking}
-            disabled={!isFormValid() || loading}
-            className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg font-medium"
+            onClick={() => setCurrentStep(4)}
+            disabled={!isFormValid()}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-medium"
           >
-            {loading ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                Processing...
-              </>
-            ) : (
-              <>
-                <CreditCard className="h-5 w-5 mr-2" />
-                Pay {priceEstimate ? formatCurrency(priceEstimate.totalCents) : ''}
-              </>
-            )}
+            Continue to Payment
           </Button>
 
           {/* Back Button */}
@@ -671,10 +689,135 @@ export default function BookingPage() {
           >
             Back to Details
           </Button>
+        </div>
+      </div>
+    </div>
+  )
 
-          <p className="text-xs text-gray-500 text-center">
-            Secure payment powered by Stripe
-          </p>
+  const renderStep4 = () => (
+    <div className="pt-8 pb-6 px-4">
+      <div className="max-w-md mx-auto">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Choose Payment</h1>
+          <p className="text-gray-600">Select your preferred payment method</p>
+        </div>
+
+        <div className="space-y-6">
+          {/* Price Summary */}
+          {priceEstimate && (
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <div className="flex justify-between items-center">
+                <span className="text-lg font-semibold text-gray-900">Total Fare:</span>
+                <span className="text-2xl font-bold text-blue-600">
+                  {formatCurrency(priceEstimate.totalCents)}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Payment Options */}
+          <div className="space-y-4">
+            {/* Stripe Payment Option */}
+            <div className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <CreditCard className="h-6 w-6 text-blue-600" />
+                  <div>
+                    <h3 className="font-semibold text-gray-900">Pay with Card</h3>
+                    <p className="text-sm text-gray-600">Secure payment with authorization hold</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm font-medium text-gray-900">Visa, Mastercard, Amex</div>
+                  <div className="text-xs text-gray-500">Charged after ride</div>
+                </div>
+              </div>
+              <Button 
+                onClick={() => handleBooking('stripe')}
+                disabled={!isFormValid() || loading}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="h-5 w-5 mr-2" />
+                    Pay with Card
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {/* Cash Payment Option */}
+            <div className="border border-gray-200 rounded-lg p-4 hover:border-green-300 transition-colors">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="h-6 w-6 bg-green-100 rounded-full flex items-center justify-center">
+                    <span className="text-green-600 font-bold text-sm">$</span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">Pay on Arrival</h3>
+                    <p className="text-sm text-gray-600">Cash, Venmo, Zelle, or other methods</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm font-medium text-gray-900">Flexible</div>
+                  <div className="text-xs text-gray-500">No upfront charge</div>
+                </div>
+              </div>
+              <Button 
+                onClick={() => handleBooking('cash')}
+                disabled={!isFormValid() || loading}
+                variant="outline"
+                className="w-full border-green-300 text-green-700 hover:bg-green-50 py-3"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <span className="mr-2">💰</span>
+                    Pay on Arrival
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+
+          {/* Payment Info */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h4 className="font-medium text-gray-900 mb-2">Payment Information</h4>
+            <div className="space-y-2 text-sm text-gray-600">
+              <div className="flex items-start gap-2">
+                <CreditCard className="h-4 w-4 mt-0.5 text-blue-600" />
+                <div>
+                  <p className="font-medium">Card Payment:</p>
+                  <p>Your card will be authorized but not charged until after your ride is completed.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-green-600 font-bold text-sm mt-0.5">$</span>
+                <div>
+                  <p className="font-medium">Pay on Arrival:</p>
+                  <p>Pay your driver directly with cash, Venmo, Zelle, or other preferred method.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Back Button */}
+          <Button 
+            onClick={() => setCurrentStep(3)}
+            variant="outline"
+            className="w-full py-3"
+          >
+            Back to Review
+          </Button>
         </div>
       </div>
     </div>
@@ -685,6 +828,7 @@ export default function BookingPage() {
       {currentStep === 1 && renderStep1()}
       {currentStep === 2 && renderStep2()}
       {currentStep === 3 && renderStep3()}
+      {currentStep === 4 && renderStep4()}
     </div>
   )
 }

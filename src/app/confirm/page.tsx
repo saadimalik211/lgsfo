@@ -23,6 +23,7 @@ function ConfirmationContent() {
   const searchParams = useSearchParams()
   const bookingId = searchParams.get('bookingId')
   const sessionId = searchParams.get('session_id')
+  const paymentMethod = searchParams.get('payment_method')
   const [booking, setBooking] = useState<BookingDetails | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -164,14 +165,26 @@ function ConfirmationContent() {
           </CardHeader>
           <CardContent>
             <div className="flex justify-between items-center">
-              <span className="text-lg font-semibold text-slate-900">Total Paid:</span>
-              <span className="text-2xl font-bold text-green-600">
+              <span className="text-lg font-semibold text-slate-900">Total Amount:</span>
+              <span className="text-2xl font-bold text-blue-600">
                 {formatCurrency(booking.priceCents)}
               </span>
             </div>
-            <p className="text-sm text-slate-500 mt-2">
-              Payment processed via Stripe • Receipt sent to your email
-            </p>
+            {paymentMethod === 'cash' ? (
+              <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-green-600 font-bold text-lg">💰</span>
+                  <span className="font-medium text-green-800">Pay on Arrival</span>
+                </div>
+                <p className="text-sm text-green-700">
+                  You'll pay your driver directly with cash, Venmo, Zelle, or your preferred method.
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500 mt-2">
+                Payment authorized via Stripe • Will be charged after ride completion
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -199,9 +212,20 @@ function ConfirmationContent() {
                 <p className="text-slate-600">Your driver will be assigned and you&apos;ll receive their details 30 minutes before pickup.</p>
               </div>
             </div>
+            {paymentMethod === 'cash' && (
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-medium mt-0.5">
+                  💰
+                </div>
+                <div>
+                  <p className="font-medium text-slate-900">Payment on Arrival</p>
+                  <p className="text-slate-600">Have your payment ready - cash, Venmo, Zelle, or your preferred method.</p>
+                </div>
+              </div>
+            )}
             <div className="flex items-start gap-3">
               <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium mt-0.5">
-                3
+                {paymentMethod === 'cash' ? '4' : '3'}
               </div>
               <div>
                 <p className="font-medium text-slate-900">Enjoy Your Ride</p>
