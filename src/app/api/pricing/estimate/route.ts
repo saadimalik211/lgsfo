@@ -47,13 +47,11 @@ const calculatePrice = async (pickup: string, dropoff: string, passengers: numbe
     return null
   }
   
-  const pricePerMile = 180 // $1.80 per mile (180 cents)
+  // Calculate tiered distance cost
+  const distanceCost = calculateTieredDistanceCost(distanceMiles)
 
   // Calculate base price
   const basePrice = basePrices[rideType as keyof typeof basePrices] || basePrices.STANDARD
-  
-  // Add distance cost
-  const distanceCost = Math.round(distanceMiles * pricePerMile)
   
   // Add passenger surcharge (after 2 passengers)
   const passengerSurcharge = Math.max(0, passengers - 2) * 500 // $5 per additional passenger
@@ -69,6 +67,30 @@ const calculatePrice = async (pickup: string, dropoff: string, passengers: numbe
       distanceMiles
     }
   }
+}
+
+const calculateTieredDistanceCost = (distanceMiles: number): number => {
+  let totalCost = 0
+  let remainingMiles = distanceMiles
+  let currentRate = 180 // Start at $1.80 per mile (180 cents)
+  const minimumRate = 100 // Minimum $1.00 per mile (100 cents)
+  const rateDecrease = 10 // 10 cents decrease per tier
+  const tierSize = 10 // 10 miles per tier
+  
+  while (remainingMiles > 0) {
+    const milesInThisTier = Math.min(remainingMiles, tierSize)
+    const tierCost = Math.round(milesInThisTier * currentRate)
+    totalCost += tierCost
+    
+    remainingMiles -= milesInThisTier
+    
+    // Decrease rate for next tier, but don't go below minimum
+    if (remainingMiles > 0) {
+      currentRate = Math.max(currentRate - rateDecrease, minimumRate)
+    }
+  }
+  
+  return totalCost
 }
 
 export async function POST(request: NextRequest) {
