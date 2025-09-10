@@ -32,11 +32,11 @@ const calculateDistance = async (pickup: string, dropoff: string): Promise<numbe
 }
 
 const calculatePrice = async (pickup: string, dropoff: string, passengers: number, rideType: string) => {
-  // Base prices for different vehicle types (now $0 base)
+  // Base prices for different vehicle types ($5 base fare)
   const basePrices = {
-    STANDARD: 0, // $0 base
-    SUV: 0,      // $0 base
-    LUXURY: 0    // $0 base
+    STANDARD: 500, // $5 base
+    SUV: 500,      // $5 base
+    LUXURY: 500    // $5 base
   }
 
   // Get real distance using Google Maps API
@@ -47,7 +47,7 @@ const calculatePrice = async (pickup: string, dropoff: string, passengers: numbe
     return null
   }
   
-  const pricePerMile = 1 // $0.01 per mile (1 cent)
+  const pricePerMile = 180 // $1.80 per mile (180 cents)
 
   // Calculate base price
   const basePrice = basePrices[rideType as keyof typeof basePrices] || basePrices.STANDARD
