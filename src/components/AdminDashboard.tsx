@@ -56,15 +56,18 @@ export const AdminDashboard = ({ username }: AdminDashboardProps) => {
   const fetchBookings = async () => {
     try {
       setIsLoading(true)
+      setError('')
       const response = await fetch('/api/admin/bookings')
       
       if (!response.ok) {
-        throw new Error('Failed to fetch bookings')
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `HTTP ${response.status}: Failed to fetch bookings`)
       }
       
       const data = await response.json()
       setBookings(data.bookings)
     } catch (err) {
+      console.error('Admin dashboard fetch error:', err)
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setIsLoading(false)

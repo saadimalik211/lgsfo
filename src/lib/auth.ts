@@ -66,7 +66,8 @@ export const setAdminSessionCookie = async (sessionToken: string) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production' && process.env.NEXTAUTH_URL?.startsWith('https'),
     sameSite: 'lax',
-    maxAge: SESSION_DURATION / 1000
+    maxAge: SESSION_DURATION / 1000,
+    path: '/'
   })
 }
 

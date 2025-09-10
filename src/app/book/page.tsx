@@ -15,7 +15,7 @@ interface BookingData {
   passengers: number
   luggage: number
   extras: string[]
-  rideType: 'STANDARD' | 'SUV' | 'LUXURY'
+  rideType: 'TESLA_MODEL_Y'
   customerName: string
   customerEmail: string
   customerPhone: string
@@ -38,6 +38,20 @@ declare global {
   }
 }
 
+// Google Maps types
+interface GoogleMapsMap {
+  fitBounds(bounds: any): void
+}
+
+interface GoogleMapsDirectionsService {
+  route(request: any, callback: (result: any, status: any) => void): void
+}
+
+interface GoogleMapsDirectionsRenderer {
+  setMap(map: GoogleMapsMap | null): void
+  setDirections(result: any): void
+}
+
 export default function BookingPage() {
   const [bookingData, setBookingData] = useState<BookingData>({
     pickup: '',
@@ -46,7 +60,7 @@ export default function BookingPage() {
     passengers: 1,
     luggage: 0,
     extras: [],
-    rideType: 'STANDARD',
+    rideType: 'TESLA_MODEL_Y',
     customerName: '',
     customerEmail: '',
     customerPhone: ''
@@ -58,9 +72,9 @@ export default function BookingPage() {
   const [isCalculating, setIsCalculating] = useState(false)
   const [googleLoaded, setGoogleLoaded] = useState(false)
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1)
-  const [map, setMap] = useState<google.maps.Map | null>(null)
-  const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService | null>(null)
-  const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null)
+  const [map, setMap] = useState<GoogleMapsMap | null>(null)
+  const [directionsService, setDirectionsService] = useState<GoogleMapsDirectionsService | null>(null)
+  const [directionsRenderer, setDirectionsRenderer] = useState<GoogleMapsDirectionsRenderer | null>(null)
 
   const pickupInputRef = useRef<HTMLInputElement>(null)
   const dropoffInputRef = useRef<HTMLInputElement>(null)
@@ -232,23 +246,23 @@ export default function BookingPage() {
 
     console.log('🛣️ Calculating route...')
 
-    const request: google.maps.DirectionsRequest = {
+    const request = {
       origin: bookingData.pickup,
       destination: bookingData.dropoff,
-      travelMode: google.maps.TravelMode.DRIVING,
-      unitSystem: google.maps.UnitSystem.IMPERIAL,
+      travelMode: 'DRIVING',
+      unitSystem: 'IMPERIAL',
       avoidHighways: false,
       avoidTolls: false
     }
 
-    directionsService.route(request, (result, status) => {
-      if (status === google.maps.DirectionsStatus.OK && result) {
+    directionsService.route(request, (result: any, status: any) => {
+      if (status === 'OK' && result) {
         console.log('✅ Route calculated successfully')
         directionsRenderer.setDirections(result)
         
         // Fit map to show the entire route
         const bounds = new window.google.maps.LatLngBounds()
-        result.routes[0].legs.forEach(leg => {
+        result.routes[0].legs.forEach((leg: any) => {
           bounds.extend(leg.start_location)
           bounds.extend(leg.end_location)
         })
@@ -630,16 +644,11 @@ export default function BookingPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Vehicle Type
               </label>
-              <Select value={bookingData.rideType} onValueChange={(value: 'STANDARD' | 'SUV' | 'LUXURY') => handleInputChange('rideType', value)}>
-                <SelectTrigger className="w-full py-3 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="STANDARD">Standard</SelectItem>
-                  <SelectItem value="SUV">SUV</SelectItem>
-                  <SelectItem value="LUXURY">Luxury</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="w-full py-3 px-4 text-base border border-gray-300 rounded-md bg-gray-50 text-gray-700 flex items-center gap-2">
+                <Car className="h-5 w-5 text-blue-600" />
+                <span>Tesla Model Y</span>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Premium electric vehicle with spacious interior</p>
             </div>
           </div>
 
@@ -743,7 +752,7 @@ export default function BookingPage() {
               </div>
               <div className="flex justify-between">
                 <span>Vehicle:</span>
-                <span className="font-medium">{bookingData.rideType.replace('_', ' ')}</span>
+                <span className="font-medium">Tesla Model Y</span>
               </div>
             </div>
           </div>

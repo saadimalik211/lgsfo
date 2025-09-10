@@ -32,11 +32,13 @@ export const AdminLogin = ({ isOpen, onClose }: AdminLoginProps) => {
       })
 
       if (response.ok) {
+        console.log('Admin login successful, redirecting...')
         onClose()
         router.push('/admin')
         router.refresh()
       } else {
         const data = await response.json()
+        console.error('Admin login failed:', data)
         setError(data.error || 'Login failed')
       }
     } catch (err) {

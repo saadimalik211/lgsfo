@@ -29,7 +29,7 @@ model Booking {
   passengers      Int
   luggage         Int           @default(0)
   extras          Json?
-  rideType        RideType      @default(STANDARD)
+  rideType        RideType      @default(TESLA_MODEL_Y)
   distanceKm      Float?
   durationMin     Int?
   priceCents      Int
@@ -69,9 +69,7 @@ enum UserRole {
 }
 
 enum RideType {
-  STANDARD
-  SUV
-  LUXURY
+  TESLA_MODEL_Y
 }
 
 enum BookingStatus {

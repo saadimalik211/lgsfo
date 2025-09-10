@@ -35,14 +35,24 @@ function ConfirmationContent() {
 
   const fetchBookingDetails = async (id: string) => {
     try {
+      setLoading(true)
       const response = await fetch(`/api/bookings/${id}`)
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: Failed to fetch booking details`)
+      }
+      
       const data = await response.json()
       
       if (data.success) {
         setBooking(data.data)
+      } else {
+        throw new Error(data.error || 'Failed to load booking details')
       }
     } catch (error) {
       console.error('Error fetching booking details:', error)
+      // Set a default error state
+      setBooking(null)
     } finally {
       setLoading(false)
     }
@@ -151,7 +161,7 @@ function ConfirmationContent() {
                 <Car className="h-5 w-5 text-indigo-600" />
                 <div>
                   <p className="font-medium text-slate-900">Vehicle</p>
-                  <p className="text-slate-600">{booking.rideType}</p>
+                  <p className="text-slate-600">Tesla Model Y</p>
                 </div>
               </div>
             </div>

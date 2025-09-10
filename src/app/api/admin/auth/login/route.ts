@@ -24,6 +24,8 @@ export async function POST(request: NextRequest) {
     const sessionToken = createAdminSession(username)
     await setAdminSessionCookie(sessionToken)
     
+    console.log('Admin login successful for:', username)
+    
     return NextResponse.json({ success: true })
   } catch (error) {
     if (error instanceof z.ZodError) {

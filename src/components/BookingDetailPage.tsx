@@ -92,6 +92,7 @@ export const BookingDetailPage = ({ bookingId, username }: BookingDetailPageProp
   const [booking, setBooking] = useState<Booking | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isUpdating, setIsUpdating] = useState(false)
+  const [isCapturing, setIsCapturing] = useState(false)
   const [error, setError] = useState('')
 
   const fetchBooking = async () => {
@@ -141,6 +142,40 @@ export const BookingDetailPage = ({ bookingId, username }: BookingDetailPageProp
       // You could add a toast notification here
     } finally {
       setIsUpdating(false)
+    }
+  }
+
+  const handleCapturePayment = async () => {
+    if (!booking) return
+
+    try {
+      setIsCapturing(true)
+      const response = await fetch(`/api/admin/bookings/${bookingId}/capture`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to capture payment')
+      }
+
+      const data = await response.json()
+      
+      // Refresh booking data to show updated payment status
+      await fetchBooking()
+      
+      // You could add a success toast notification here
+      console.log('Payment captured successfully:', data)
+      
+    } catch (err) {
+      console.error('Error capturing payment:', err)
+      setError(err instanceof Error ? err.message : 'Failed to capture payment')
+      // You could add an error toast notification here
+    } finally {
+      setIsCapturing(false)
     }
   }
 
@@ -372,8 +407,40 @@ export const BookingDetailPage = ({ bookingId, username }: BookingDetailPageProp
                   </div>
                   {booking.payments.some(p => p.status === 'AUTHORIZED') && (
                     <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <p className="text-sm text-blue-800">
-                        💡 Payment is authorized and will be captured when you mark this booking as completed.
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-blue-800 font-medium">
+                            💳 Payment is authorized and ready to capture
+                          </p>
+                          <p className="text-xs text-blue-600 mt-1">
+                            Click the button below to capture the payment
+                          </p>
+                        </div>
+                        <Button
+                          onClick={handleCapturePayment}
+                          disabled={isCapturing}
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700 text-white"
+                        >
+                          {isCapturing ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                              Capturing...
+                            </>
+                          ) : (
+                            <>
+                              <CreditCard className="h-4 w-4 mr-2" />
+                              Capture Payment
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  {booking.payments.some(p => p.status === 'SUCCEEDED') && (
+                    <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <p className="text-sm text-green-800 font-medium">
+                        ✅ Payment has been successfully captured
                       </p>
                     </div>
                   )}

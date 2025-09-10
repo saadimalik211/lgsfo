@@ -95,26 +95,8 @@ export async function PATCH(
       )
     }
     
-    // Handle payment capture when marking as completed
-    if (updateData.status === 'COMPLETED' && stripe) {
-      const authorizedPayment = existingBooking.payments.find(
-        payment => payment.status === 'AUTHORIZED' && payment.stripePaymentIntentId
-      )
-      
-      if (authorizedPayment && authorizedPayment.stripePaymentIntentId) {
-        try {
-          // Capture the authorized payment
-          await stripe.paymentIntents.capture(authorizedPayment.stripePaymentIntentId)
-          console.log(`Payment captured for booking ${id}: ${authorizedPayment.stripePaymentIntentId}`)
-        } catch (stripeError) {
-          console.error('Failed to capture payment:', stripeError)
-          return NextResponse.json(
-            { error: 'Failed to capture payment. Please try again.' },
-            { status: 500 }
-          )
-        }
-      }
-    }
+    // Note: Payment capture is now handled separately via the capture endpoint
+    // No automatic capture when marking as completed
     
     // Update booking
     const updatedBooking = await db.booking.update({

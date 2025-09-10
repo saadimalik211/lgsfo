@@ -17,6 +17,8 @@ export async function GET(request: NextRequest) {
   try {
     // Check admin authentication
     const session = await getAdminSession()
+    console.log('Admin session check:', { isAuthenticated: session.isAuthenticated, username: session.username })
+    
     if (!session.isAuthenticated) {
       return NextResponse.json(
         { error: 'Not authenticated' },

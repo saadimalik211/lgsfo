@@ -34,9 +34,7 @@ const calculateDistance = async (pickup: string, dropoff: string): Promise<numbe
 const calculatePrice = async (pickup: string, dropoff: string, passengers: number, rideType: string) => {
   // Base prices for different vehicle types ($5 base fare)
   const basePrices = {
-    STANDARD: 500, // $5 base
-    SUV: 500,      // $5 base
-    LUXURY: 500    // $5 base
+    TESLA_MODEL_Y: 500 // $5 base
   }
 
   // Get real distance using Google Maps API
@@ -51,7 +49,7 @@ const calculatePrice = async (pickup: string, dropoff: string, passengers: numbe
   const distanceCost = calculateTieredDistanceCost(distanceMiles)
 
   // Calculate base price
-  const basePrice = basePrices[rideType as keyof typeof basePrices] || basePrices.STANDARD
+  const basePrice = basePrices[rideType as keyof typeof basePrices] || basePrices.TESLA_MODEL_Y
   
   // Add passenger surcharge (after 2 passengers)
   const passengerSurcharge = Math.max(0, passengers - 2) * 500 // $5 per additional passenger
@@ -100,7 +98,7 @@ export async function POST(request: NextRequest) {
     // Validate input
     const validatedData = pricingRequestSchema.parse(body)
     
-    const { pickup, dropoff, passengers, rideType = 'STANDARD' } = validatedData
+    const { pickup, dropoff, passengers, rideType = 'TESLA_MODEL_Y' } = validatedData
     
     // Calculate price
     const pricing = await calculatePrice(pickup, dropoff, passengers, rideType)

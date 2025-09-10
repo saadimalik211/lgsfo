@@ -54,8 +54,8 @@ export async function POST(request: NextRequest) {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: `LETSGOSFO Ride - ${booking.pickup} to ${booking.dropoff}`,
-              description: `Premium ride service on ${new Date(booking.datetime).toLocaleDateString()} at ${new Date(booking.datetime).toLocaleTimeString()}. Payment will be processed after ride completion.`,
+              name: `LETSGOSFO Tesla Model Y Ride - ${booking.pickup} to ${booking.dropoff}`,
+              description: `Premium Tesla Model Y ride service on ${new Date(booking.datetime).toLocaleDateString()} at ${new Date(booking.datetime).toLocaleTimeString()}. Payment will be processed after ride completion.`,
             },
             unit_amount: booking.priceCents,
           },
