@@ -21,43 +21,42 @@ model User {
 }
 
 model Booking {
-  id              String        @id @default(cuid())
-  userId          String?
-  pickup          String
-  dropoff         String
-  datetime        DateTime
-  passengers      Int
-  luggage         Int           @default(0)
-  extras          Json?
-  rideType        RideType      @default(TESLA_MODEL_Y)
-  distanceKm      Float?
-  durationMin     Int?
-  priceCents      Int
-  status          BookingStatus @default(PENDING)
-  // Customer information (stored locally for guest bookings)
-  customerName    String?
-  customerEmail   String?
-  customerPhone   String?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  user            User?         @relation(fields: [userId], references: [id])
-  payments        Payment[]
+  id            String        @id @default(cuid())
+  userId        String?
+  pickup        String
+  dropoff       String
+  datetime      DateTime
+  passengers    Int
+  luggage       Int           @default(0)
+  extras        Json?
+  rideType      RideType      @default(TESLA_MODEL_Y)
+  distanceKm    Float?
+  durationMin   Int?
+  priceCents    Int
+  status        BookingStatus @default(PENDING)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  customerEmail String?
+  customerName  String?
+  customerPhone String?
+  user          User?         @relation(fields: [userId], references: [id])
+  payments      Payment[]
 
   @@map("bookings")
 }
 
 model Payment {
-  id                      String        @id @default(cuid())
-  bookingId               String
-  stripePaymentId         String?
-  stripePaymentIntentId   String?       // For authorization holds
-  amountCents             Int
-  currency                String        @default("USD")
-  status                  PaymentStatus @default(REQUIRES_PAYMENT_METHOD)
-  paymentMethod           PaymentMethod @default(STRIPE)
-  createdAt               DateTime      @default(now())
-  updatedAt               DateTime      @updatedAt
-  booking                 Booking       @relation(fields: [bookingId], references: [id])
+  id                    String        @id @default(cuid())
+  bookingId             String
+  stripePaymentId       String?
+  amountCents           Int
+  currency              String        @default("USD")
+  status                PaymentStatus @default(REQUIRES_PAYMENT_METHOD)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  stripePaymentIntentId String?
+  paymentMethod         PaymentMethod @default(STRIPE)
+  booking               Booking       @relation(fields: [bookingId], references: [id])
 
   @@map("payments")
 }
@@ -81,10 +80,10 @@ enum BookingStatus {
 
 enum PaymentStatus {
   REQUIRES_PAYMENT_METHOD
-  AUTHORIZED
   SUCCEEDED
   FAILED
   REFUNDED
+  AUTHORIZED
   CANCELLED
 }
 
