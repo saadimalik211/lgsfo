@@ -615,11 +615,13 @@ export default function BookingPage() {
               </label>
               <Select value={bookingData.luggage.toString()} onValueChange={(value) => handleInputChange('luggage', parseInt(value))}>
                 <SelectTrigger className="w-full py-3 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-                  <SelectValue />
+                  <SelectValue placeholder="Select luggage count" />
                 </SelectTrigger>
                 <SelectContent>
                   {[0, 1, 2, 3, 4, 5, 6, 7, 8].map(num => (
-                    <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                    <SelectItem key={num} value={num.toString()}>
+                      {num === 0 ? 'No luggage' : `${num} ${num === 1 ? 'piece' : 'pieces'}`}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
