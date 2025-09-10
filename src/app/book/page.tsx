@@ -58,9 +58,13 @@ export default function BookingPage() {
   const [isCalculating, setIsCalculating] = useState(false)
   const [googleLoaded, setGoogleLoaded] = useState(false)
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1)
+  const [map, setMap] = useState<google.maps.Map | null>(null)
+  const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService | null>(null)
+  const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null)
 
   const pickupInputRef = useRef<HTMLInputElement>(null)
   const dropoffInputRef = useRef<HTMLInputElement>(null)
+  const mapRef = useRef<HTMLDivElement>(null)
 
   // Load Google Maps API
   useEffect(() => {
@@ -81,7 +85,7 @@ export default function BookingPage() {
       }
 
       const script = document.createElement('script')
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places,directions`
       script.async = true
       script.defer = true
       script.onload = () => {
@@ -174,16 +178,98 @@ export default function BookingPage() {
     console.log('✅ Autocomplete initialized successfully')
   }, [googleLoaded])
 
-  // Auto-calculate price when locations change
+  // Initialize map and directions service
+  useEffect(() => {
+    if (!googleLoaded || !window.google || !mapRef.current) {
+      return
+    }
+
+    console.log('🗺️ Initializing map and directions service...')
+
+    // Initialize map
+    const mapInstance = new window.google.maps.Map(mapRef.current, {
+      zoom: 13,
+      center: { lat: 37.7749, lng: -122.4194 }, // Default to San Francisco
+      mapTypeControl: false,
+      streetViewControl: false,
+      fullscreenControl: false,
+      zoomControl: true,
+      styles: [
+        {
+          featureType: 'poi',
+          elementType: 'labels',
+          stylers: [{ visibility: 'off' }]
+        }
+      ]
+    })
+
+    // Initialize directions service and renderer
+    const directionsServiceInstance = new window.google.maps.DirectionsService()
+    const directionsRendererInstance = new window.google.maps.DirectionsRenderer({
+      draggable: false,
+      suppressMarkers: false,
+      polylineOptions: {
+        strokeColor: '#3b82f6',
+        strokeWeight: 4,
+        strokeOpacity: 0.8
+      }
+    })
+
+    directionsRendererInstance.setMap(mapInstance)
+
+    setMap(mapInstance)
+    setDirectionsService(directionsServiceInstance)
+    setDirectionsRenderer(directionsRendererInstance)
+
+    console.log('✅ Map and directions service initialized successfully')
+  }, [googleLoaded])
+
+  // Calculate and display route when both locations are available
+  const calculateRoute = () => {
+    if (!directionsService || !directionsRenderer || !bookingData.pickup || !bookingData.dropoff) {
+      return
+    }
+
+    console.log('🛣️ Calculating route...')
+
+    const request: google.maps.DirectionsRequest = {
+      origin: bookingData.pickup,
+      destination: bookingData.dropoff,
+      travelMode: google.maps.TravelMode.DRIVING,
+      unitSystem: google.maps.UnitSystem.IMPERIAL,
+      avoidHighways: false,
+      avoidTolls: false
+    }
+
+    directionsService.route(request, (result, status) => {
+      if (status === google.maps.DirectionsStatus.OK && result) {
+        console.log('✅ Route calculated successfully')
+        directionsRenderer.setDirections(result)
+        
+        // Fit map to show the entire route
+        const bounds = new window.google.maps.LatLngBounds()
+        result.routes[0].legs.forEach(leg => {
+          bounds.extend(leg.start_location)
+          bounds.extend(leg.end_location)
+        })
+        map?.fitBounds(bounds)
+      } else {
+        console.error('❌ Route calculation failed:', status)
+      }
+    })
+  }
+
+  // Auto-calculate price and route when locations change
   useEffect(() => {
     const timer = setTimeout(() => {
       if (bookingData.pickup && bookingData.dropoff) {
         calculatePrice()
+        calculateRoute()
       }
     }, 1000) // Debounce for 1 second
 
     return () => clearTimeout(timer)
-  }, [bookingData.pickup, bookingData.dropoff])
+  }, [bookingData.pickup, bookingData.dropoff, directionsService, directionsRenderer])
 
   const handleInputChange = (field: keyof BookingData, value: string | number | Date | null) => {
     setBookingData(prev => ({ ...prev, [field]: value }))
@@ -342,81 +428,118 @@ export default function BookingPage() {
 
   const renderStep1 = () => (
     <div className="pt-8 pb-6 px-4">
-      <div className="max-w-md mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Where to?</h1>
           <p className="text-gray-600">Enter your pickup and dropoff locations</p>
         </div>
 
-        <div className="space-y-6">
-          {/* Pickup Location */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Pickup Location
-            </label>
-            <div className="relative">
-              <Input
-                ref={pickupInputRef}
-                placeholder={googleLoaded ? "Start typing for suggestions..." : "Enter pickup address"}
-                value={bookingData.pickup}
-                onChange={(e) => handleInputChange('pickup', e.target.value)}
-                className="w-full px-4 py-3 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-
-          {/* Dropoff Location */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Dropoff Location
-            </label>
-            <div className="relative">
-              <Input
-                ref={dropoffInputRef}
-                placeholder={googleLoaded ? "Start typing for suggestions..." : "Enter dropoff address"}
-                value={bookingData.dropoff}
-                onChange={(e) => handleInputChange('dropoff', e.target.value)}
-                className="w-full px-4 py-3 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-
-          {/* Price Display */}
-          {isCalculating && (
-            <div className="text-center py-6">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-blue-600" />
-              <p className="text-gray-600 font-medium">Calculating fare...</p>
-            </div>
-          )}
-
-          {priceEstimate && !isCalculating && (
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <div className="flex items-center justify-between mb-2">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Estimated Fare</h3>
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Route className="h-4 w-4 mr-1" />
-                    <span>{priceEstimate.breakdown.distanceMiles} miles</span>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-blue-600">
-                    {formatCurrency(priceEstimate.totalCents)}
-                  </div>
-                  <div className="text-sm text-gray-600">estimated</div>
-                </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+          {/* Left Column - Form */}
+          <div className="space-y-6">
+            {/* Pickup Location */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Pickup Location
+              </label>
+              <div className="relative">
+                <Input
+                  ref={pickupInputRef}
+                  placeholder={googleLoaded ? "Start typing for suggestions..." : "Enter pickup address"}
+                  value={bookingData.pickup}
+                  onChange={(e) => handleInputChange('pickup', e.target.value)}
+                  className="w-full px-4 py-3 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                />
               </div>
             </div>
-          )}
 
-          {/* Continue Button */}
-          <Button 
-            onClick={() => setCurrentStep(2)}
-            disabled={!canProceedToStep2()}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-medium"
-          >
-            Continue
-          </Button>
+            {/* Dropoff Location */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Dropoff Location
+              </label>
+              <div className="relative">
+                <Input
+                  ref={dropoffInputRef}
+                  placeholder={googleLoaded ? "Start typing for suggestions..." : "Enter dropoff address"}
+                  value={bookingData.dropoff}
+                  onChange={(e) => handleInputChange('dropoff', e.target.value)}
+                  className="w-full px-4 py-3 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            {/* Price Display */}
+            {isCalculating && (
+              <div className="text-center py-6">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-blue-600" />
+                <p className="text-gray-600 font-medium">Calculating fare...</p>
+              </div>
+            )}
+
+            {priceEstimate && !isCalculating && (
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Estimated Fare</h3>
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Route className="h-4 w-4 mr-1" />
+                      <span>{priceEstimate.breakdown.distanceMiles} miles</span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {formatCurrency(priceEstimate.totalCents)}
+                    </div>
+                    <div className="text-sm text-gray-600">estimated</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Continue Button */}
+            <Button 
+              onClick={() => setCurrentStep(2)}
+              disabled={!canProceedToStep2()}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-medium"
+            >
+              Continue
+            </Button>
+          </div>
+
+          {/* Right Column - Map */}
+          <div className="space-y-4">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Route Preview</h3>
+              <p className="text-sm text-gray-600">Your proposed route will appear here</p>
+            </div>
+            
+            <div className="relative">
+              <div 
+                ref={mapRef}
+                className="w-full h-80 sm:h-96 rounded-lg border border-gray-200 shadow-sm"
+                style={{ minHeight: '320px' }}
+              />
+              
+              {!googleLoaded && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-50 rounded-lg">
+                  <div className="text-center">
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-gray-400" />
+                    <p className="text-sm text-gray-500">Loading map...</p>
+                  </div>
+                </div>
+              )}
+              
+              {googleLoaded && (!bookingData.pickup || !bookingData.dropoff) && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-50 rounded-lg">
+                  <div className="text-center">
+                    <Navigation className="h-12 w-12 mx-auto mb-2 text-gray-400" />
+                    <p className="text-sm text-gray-500">Enter pickup and dropoff locations to see your route</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
