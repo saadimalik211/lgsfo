@@ -148,3 +148,84 @@ export async function PATCH(
     )
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    console.log('DELETE request received')
+    // Require admin authentication
+    const session = await requireAdminAuth()
+    console.log('Admin authenticated:', session.username)
+    
+    const { id } = await params
+    console.log('Deleting booking ID:', id)
+    
+    // Check if booking exists and get payment info
+    const existingBooking = await db.booking.findUnique({
+      where: { id },
+      include: {
+        payments: true
+      }
+    })
+    
+    if (!existingBooking) {
+      console.log('Booking not found:', id)
+      return NextResponse.json(
+        { error: 'Booking not found' },
+        { status: 404 }
+      )
+    }
+    
+    console.log('Found booking to delete:', existingBooking.id)
+    
+    // Check if there are any successful payments that need to be refunded
+    const successfulPayments = existingBooking.payments.filter(p => p.status === 'SUCCEEDED')
+    console.log('Successful payments to refund:', successfulPayments.length)
+    
+    if (successfulPayments.length > 0 && stripe) {
+      // Refund successful payments before deleting
+      for (const payment of successfulPayments) {
+        if (payment.stripePaymentId) {
+          try {
+            await stripe.refunds.create({
+              payment_intent: payment.stripePaymentId,
+              reason: 'requested_by_customer'
+            })
+            console.log(`Refunded payment ${payment.stripePaymentId} for booking ${id}`)
+          } catch (stripeError) {
+            console.error(`Failed to refund payment ${payment.stripePaymentId}:`, stripeError)
+            // Continue with deletion even if refund fails
+          }
+        }
+      }
+    }
+    
+    // Delete payments first (due to foreign key constraint)
+    await db.payment.deleteMany({
+      where: { bookingId: id }
+    })
+    
+    // Then delete the booking
+    await db.booking.delete({
+      where: { id }
+    })
+    
+    console.log('Booking deleted successfully from database')
+    
+    // Log admin action
+    console.log(`Admin ${session.username} deleted booking ${id}`)
+    
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Booking deleted successfully' 
+    })
+  } catch (error) {
+    console.error('Admin booking deletion error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}

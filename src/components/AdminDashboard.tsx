@@ -102,6 +102,39 @@ export const AdminDashboard = ({ username }: AdminDashboardProps) => {
     }
   }
 
+  const handleDeleteBooking = async (bookingId: string) => {
+    try {
+      console.log('Attempting to delete booking:', bookingId)
+      const response = await fetch(`/api/admin/bookings/${bookingId}`, {
+        method: 'DELETE',
+      })
+
+      console.log('Delete response status:', response.status)
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        console.error('Delete error response:', errorData)
+        throw new Error(errorData.error || 'Failed to delete booking')
+      }
+
+      const result = await response.json()
+      console.log('Delete successful:', result)
+
+      // Remove booking from local state
+      setBookings(prev => {
+        const filtered = prev.filter(booking => booking.id !== bookingId)
+        console.log('Updated bookings count:', filtered.length)
+        return filtered
+      })
+      
+      // Show success message (you could replace this with a toast notification)
+      alert('Booking deleted successfully!')
+    } catch (err) {
+      console.error('Error deleting booking:', err)
+      // You could add a toast notification here
+    }
+  }
+
 
   useEffect(() => {
     fetchBookings()
@@ -224,6 +257,7 @@ export const AdminDashboard = ({ username }: AdminDashboardProps) => {
         <BookingTable
           bookings={bookings}
           onStatusChange={handleStatusChange}
+          onDelete={handleDeleteBooking}
         />
       </div>
     </div>
